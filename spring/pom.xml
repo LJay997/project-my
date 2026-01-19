@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.qq.ijay997</groupId>
-        <artifactId>my-project</artifactId>
+        <artifactId>project-my</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
 
