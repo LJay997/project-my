@@ -1,6 +1,7 @@
 package com.qq.ijay997;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 /**
  * 1. 两数之和
@@ -28,7 +29,7 @@ public class Solution {
 //        int i = solution.removeDuplicates(nums);
 //        solution.removeElement(new int[]{3, 2, 2, 3}, 3);
 //        int i = solution.searchInsert(new int[]{1, 3, 5, 6}, 5);
-        i = solution.maxProfit(new int[]{7,1,5,3,6,4});
+        i = solution.maxProfit(new int[]{7, 1, 5, 3, 6, 4});
         System.out.println(i);
     }
 
@@ -129,4 +130,69 @@ public class Solution {
         return maxProfit;
     }
 
+    /**
+     * https://leetcode.cn/problems/move-zeroes/description/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * 283. 移动零
+     *
+     * @param nums
+     */
+    public void moveZeroes(int[] nums) {
+        int fast, slow = 0;
+        for (fast = 0; fast < nums.length; fast++) {
+            if (nums[fast] != 0 && nums[slow] == 0) {
+                nums[slow] = nums[fast];
+                nums[fast] = 0;
+                slow++;
+            }
+        }
+    }
+
+    /**
+     * https://leetcode.cn/problems/longest-substring-without-repeating-characters/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * 3. 无重复字符的最长子串
+     *
+     * @param s
+     * @return
+     */
+    public int lengthOfLongestSubstring(String s) {
+        if (s == null || s.isEmpty()) return 0;
+
+        int maxLength = 0;
+        LinkedHashMap<Character, Integer> linkedHashMap = new LinkedHashMap<>();
+        linkedHashMap.put(s.charAt(0), 0);
+        HashMap<Character, Integer> charMap = new HashMap<>();
+        for (int slow = 0, fast = 0; fast < s.length(); fast++) {
+            char curChar = s.charAt(fast);
+
+            // 如果当前字符已经出现过，则更新slow 直接提到重复的字符的下一个位置,防止 slow 越来越小，导致重复判断
+            if (charMap.containsKey(curChar) && charMap.get(curChar) >= slow) {
+                slow = charMap.get(curChar) + 1;
+            }
+            // 添加当前字符
+            charMap.put(curChar, fast);
+            // 更新最大长度
+            maxLength = Math.max(maxLength, fast - slow + 1);
+        }
+        return maxLength;
+    }
+
+    /**
+     * https://leetcode.cn/problems/maximum-subarray/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * TODO 再次学习
+     * 53. 最大子数组和
+     *
+     * @param nums
+     * @return
+     */
+    public int maxSubArray(int[] nums) {
+        int maxSum = nums[0];
+        int curSum = nums[0];
+        for (int i = 1; i < nums.length; i++) {
+            // 如果越加越小 则不加 用原来的数
+            curSum = Math.max(curSum + nums[i], nums[i]);
+            // 更新最大值
+            maxSum = Math.max(maxSum, curSum);
+        }
+        return maxSum;
+    }
 }
