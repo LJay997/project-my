@@ -1,40 +1,37 @@
 package com.qq.ijay997;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
+import java.util.*;
+
 
 /**
- * 1. 两数之和
+ * leetcode
  */
-// https://leetcode.cn/problems/two-sum/?spm=5176.28103460.0.0.3f906308rp5Ufn
 public class Solution {
+
+    /**
+     * 1. 两数之和
+     * https://leetcode.cn/problems/two-sum/?spm=5176.28103460.0.0.3f906308rp5Ufn
+     */
     public int[] twoSum(int[] nums, int target) {
-        for (int firstNumberIndex = 0; firstNumberIndex < nums.length - 1; firstNumberIndex++) {
-            int shengyu = target - nums[firstNumberIndex];
-            for (int lastNumberIndex = nums.length - 1; lastNumberIndex > 0 && lastNumberIndex > firstNumberIndex; lastNumberIndex--) {
-                if (shengyu == nums[lastNumberIndex]) {
-                    return new int[]{firstNumberIndex, lastNumberIndex};
+        for (int left = 0; left < nums.length - 1; left++) {
+            int shengyu = target - nums[left];
+            for (int right = nums.length - 1; right > 0 && right > left; right--) {
+                if (shengyu == nums[right]) {
+                    return new int[]{left, right};
                 }
             }
         }
         return null;
     }
 
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        int i;
-//        int[] ints = solution.twoSum2(new int[]{3, 2, 4}, 6);
-
-//        int[] nums = {1, 1, 2};
-//        int i = solution.removeDuplicates(nums);
-//        solution.removeElement(new int[]{3, 2, 2, 3}, 3);
-//        int i = solution.searchInsert(new int[]{1, 3, 5, 6}, 5);
-        i = solution.maxProfit(new int[]{7, 1, 5, 3, 6, 4});
-        System.out.println(i);
-    }
-
-
-    //    查找表的两个常见实现， 哈希表、平衡二叉搜索数（可维护元素的顺序性）
+    /**
+     * 1. 两数之和
+     * 基于查找表实现 查找表的两个常见实现， 哈希表、平衡二叉搜索数（可维护元素的顺序性）
+     *
+     * @param nums
+     * @param target
+     * @return
+     */
     public int[] twoSum2(int[] nums, int target) {
         // K:num 的元素, V: num 的元素的所在下标,
         HashMap<Integer, Integer> hashMap = new HashMap<>(nums.length);
@@ -58,6 +55,7 @@ public class Solution {
      * @return 数组的长度
      */
     public int removeDuplicates(int[] nums) {
+        // 快慢指针
         int slow = 0;
         for (int fast = 1; fast < nums.length; fast++) {
             if (nums[fast] != nums[slow]) {
@@ -68,7 +66,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/remove-element/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * https://leetcode.cn/problems/remove-element
      * 27. 移除元素
      *
      * @param nums
@@ -86,7 +84,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/search-insert-position/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * https://leetcode.cn/problems/search-insert-position
      * 35. 搜索插入位置
      *
      * @param nums
@@ -108,7 +106,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/best-time-to-buy-and-sell-stock/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * https://leetcode.cn/problems/best-time-to-buy-and-sell-stock
      * 121. 买卖股票的最佳时机
      *
      * @param prices
@@ -131,7 +129,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/move-zeroes/description/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * https://leetcode.cn/problems/move-zeroes/description
      * 283. 移动零
      *
      * @param nums
@@ -148,7 +146,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/longest-substring-without-repeating-characters/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * https://leetcode.cn/problems/longest-substring-without-repeating-characters
      * 3. 无重复字符的最长子串
      *
      * @param s
@@ -177,7 +175,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/maximum-subarray/?spm=5176.28103460.0.0.50c06308jxdXrh
+     * https://leetcode.cn/problems/maximum-subarray
      * TODO 再次学习
      * 53. 最大子数组和
      *
@@ -194,5 +192,146 @@ public class Solution {
             maxSum = Math.max(maxSum, curSum);
         }
         return maxSum;
+    }
+
+    public ListNode reverseList2(ListNode head) {
+        if (head == null) return null;
+
+        ArrayDeque<ListNode> nodeQue = new ArrayDeque<>();
+        while (head != null) {
+            nodeQue.add(head);
+            head = head.next;
+        }
+
+        ListNode last = nodeQue.peekLast();
+        ListNode node;
+        while (!nodeQue.isEmpty()) {
+            node = nodeQue.pollLast();
+            if (!nodeQue.isEmpty())
+                node.next = nodeQue.peekLast();
+            else node.next = null;
+        }
+        return last;
+    }
+
+    /**
+     * https://leetcode.cn/problems/reverse-linked-list
+     * 206. 反转链表
+     *
+     * @param head
+     * @return
+     */
+    public ListNode reverseList(ListNode head) {
+        ListNode curNode = head;
+        ListNode preNode = null;
+        ListNode tmp;
+        for (; curNode != null; ) {
+            tmp = curNode.next;
+
+            curNode.next = preNode;
+            // 移动指针
+            preNode = curNode;
+            curNode = tmp;
+        }
+        return preNode;
+    }
+
+    /**
+     * https://leetcode.cn/problems/merge-two-sorted-lists
+     * 21. 合并两个有序链表 TODO 继续学习
+     *
+     * @param list1
+     * @param list2
+     * @return
+     */
+    public ListNode mergeTwoLists(ListNode list1, ListNode list2) {
+        // 创建虚拟头节点
+        ListNode dummy = new ListNode(-1);
+        ListNode cur = dummy;
+
+        while (list1 != null && list2 != null) {
+
+            // 比较两个链表的值，将较小的节点链接到结果链表中
+            if (list1.val < list2.val) {
+                cur.next = list1;
+                list1 = list1.next;
+            } else {
+                cur.next = list2;
+                list2 = list2.next;
+            }
+            cur = cur.next;
+        }
+
+        // 链接剩余的节点
+        cur.next = list1 == null ?
+                list2 : list1;
+        return dummy.next;
+    }
+
+    /**
+     * https://leetcode.cn/problems/linked-list-cycle
+     * 141. 环形链表
+     *
+     * @param head
+     * @return
+     */
+    public boolean hasCycle(ListNode head) {
+        HashMap<ListNode, Integer> map = new HashMap<>();
+
+        for (int i = 0; head != null; head = head.next, i++) {
+            if (map.containsKey(head)) {
+                return true;
+            } else map.put(head, i);
+        }
+        return false;
+    }
+
+    public boolean hasCycle1(ListNode head) {
+        if (head == null || head.next == null) return false;
+
+        ListNode slow = head;
+        ListNode fast = head.next;
+        for (; slow != null && fast != null; ) {
+            if (slow == fast) return true;
+
+            if (fast.next == null) return false;
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        return false;
+    }
+
+    /**
+     * https://leetcode.cn/problems/remove-nth-node-from-end-of-list
+     * 19. 删除链表的倒数第 N 个结点
+     * TODO 优化优化
+     * @param head
+     * @param n
+     * @return
+     */
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        if (head == null || n <= 0) return head;
+
+        ListNode cur = head;
+        List<ListNode> list = new ArrayList<>();
+
+        for (; cur != null; cur = cur.next)
+            list.add(cur);
+
+        int index = list.size() - n;
+        if (index < 0) return head;
+
+        // 删除头结点
+        if (index == 0) return head.next;
+
+        // 切断链表
+        if (n == 1) {
+            list.get(index - 1).next = null;
+            return head;
+        }
+
+        ListNode pr = list.get(index - 1);
+        pr.next = list.get(index + 1);
+        return head;
     }
 }
