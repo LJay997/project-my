@@ -1,5 +1,6 @@
 package com.qq.ijay997;
 
+
 import java.util.*;
 
 
@@ -305,6 +306,7 @@ public class Solution {
      * https://leetcode.cn/problems/remove-nth-node-from-end-of-list
      * 19. 删除链表的倒数第 N 个结点
      * TODO 优化优化
+     *
      * @param head
      * @param n
      * @return
@@ -334,4 +336,151 @@ public class Solution {
         pr.next = list.get(index + 1);
         return head;
     }
+
+    /**
+     * https://leetcode.cn/problems/merge-k-sorted-lists
+     * 23. 合并K个升序链表i
+     *
+     * @param lists
+     * @return
+     */
+    public ListNode mergeKLists(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+
+        PriorityQueue<ListNode> pq = new PriorityQueue<>(Comparator.comparingInt((ListNode o) -> o.val));
+        // 将每个链表的头节点添加到优先队列中
+        for (ListNode list : lists)
+            for (; list != null; list = list.next) pq.add(list);
+
+        ListNode dummy = new ListNode(-1);
+        ListNode current = dummy;
+        for (; !pq.isEmpty(); current = current.next) {
+            ListNode node = pq.poll();
+            current.next = node;
+        }
+        return dummy.next;
+    }
+
+    public ListNode mergeKLists1(ListNode[] lists) {
+        if (lists == null || lists.length == 0) return null;
+
+        ListNode dummy = new ListNode(-1);
+        ListNode current = dummy;
+        while (true) {
+            ListNode minNode = null;
+            int minIndex = -1;
+
+            for (int i = 0; i < lists.length; i++) {
+                if (lists[i] != null) {
+                    if (minNode == null || lists[i].val < minNode.val) {
+                        minNode = lists[i];
+                        minIndex = i;
+                    }
+                }
+            }
+            if (minNode == null) break;
+            current.next = minNode;
+            current = current.next;
+            lists[minIndex] = lists[minIndex].next;
+        }
+        return dummy.next;
+    }
+
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+        // 测试用例1: 正常情况
+        System.out.println("测试用例1:");
+        ListNode l1 = createLinkedList(new int[]{1, 4, 5});
+        ListNode l2 = createLinkedList(new int[]{1, 3, 4});
+        ListNode l3 = createLinkedList(new int[]{2, 6});
+        ListNode[] lists1 = {l1, l2, l3};
+        ListNode result1 = solution.mergeKLists(lists1);
+        printLinkedList(result1); // 预期输出: 1->1->2->3->4->4->5->6
+
+        // 测试用例2: 空数组
+        System.out.println("\n测试用例2:");
+        ListNode[] lists2 = {};
+        ListNode result2 = solution.mergeKLists1(lists2);
+        System.out.println(result2 == null ? "null" : printLinkedListToString(result2)); // 预期输出: null
+
+        // 测试用例3: 包含空链表
+        System.out.println("\n测试用例3:");
+        ListNode l4 = createLinkedList(new int[]{1, 2, 3});
+        ListNode l5 = null;
+        ListNode l6 = createLinkedList(new int[]{4, 5});
+        ListNode[] lists3 = {l4, l5, l6};
+        ListNode result3 = solution.mergeKLists1(lists3);
+        printLinkedList(result3); // 预期输出: 1->2->3->4->5
+
+        // 测试用例4: 单个链表
+        System.out.println("\n测试用例4:");
+        ListNode l7 = createLinkedList(new int[]{1, 2, 3});
+        ListNode[] lists4 = {l7};
+        ListNode result4 = solution.mergeKLists1(lists4);
+        printLinkedList(result4); // 预期输出: 1->2->3
+
+        // 测试用例5: 全部为空链表
+        System.out.println("\n测试用例5:");
+        ListNode l8 = null;
+        ListNode l9 = null;
+        ListNode[] lists5 = {l8, l9};
+        ListNode result5 = solution.mergeKLists1(lists5);
+        System.out.println(result5 == null ? "null" : printLinkedListToString(result5)); // 预期输出: null
+
+    }
+
+    // 辅助方法：创建链表
+    private static ListNode createLinkedList(int[] values) {
+        if (values == null || values.length == 0) {
+            return null;
+        }
+
+        ListNode head = new ListNode(values[0]);
+        ListNode current = head;
+        for (int i = 1; i < values.length; i++) {
+            current.next = new ListNode(values[i]);
+            current = current.next;
+        }
+        return head;
+    }
+
+    // 辅助方法：打印链表
+    private static void printLinkedList(ListNode head) {
+        String result = printLinkedListToString(head);
+        System.out.print(result);
+    }
+
+    // 辅助方法：将链表转换为字符串
+    private static String printLinkedListToString(ListNode head) {
+        StringBuilder sb = new StringBuilder();
+        ListNode current = head;
+        while (current != null) {
+            sb.append(current.val);
+            if (current.next != null) {
+                sb.append("->");
+            }
+            current = current.next;
+        }
+        return sb.toString();
+    }
+
+    /**
+     * https://leetcode.cn/problems/binary-tree-level-order-traversal
+     * 102. 二叉树的层序遍历 TODO
+     *
+     * @param root
+     * @return
+     */
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        if (root == null) return new ArrayList<>();
+        TreeNode curNode = root;
+        ArrayList<TreeNode> list = new ArrayList<>();
+        list.add(curNode);
+        while (!list.isEmpty()){
+
+        }
+        return null;
+    }
+
+
 }
