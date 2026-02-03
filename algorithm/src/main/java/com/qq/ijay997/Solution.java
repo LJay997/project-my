@@ -2,6 +2,7 @@ package com.qq.ijay997;
 
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 /**
@@ -416,5 +417,214 @@ public class Solution {
         int leftDepth = maxDepth(root.left);
         int rightDepth = maxDepth(root.right);
         return Math.max(leftDepth, rightDepth) + 1;
+    }
+
+    /**
+     *
+     * <a href="https://leetcode.cn/problems/symmetric-tree">101. 对称二叉树</a>
+     *
+     * @param root
+     * @return
+     */
+    public boolean isSymmetric(TreeNode root) {
+        if (root == null) return true;
+
+        return isMirror(root.left, root.right);
+    }
+
+    private boolean isMirror(TreeNode left, TreeNode right) {
+        if (left == null && right == null) return true;
+
+        if (left == null || right == null) return false;
+
+        if (left.val != right.val) return false;
+
+        return isMirror(left.left, right.right) && isMirror(left.right, right.left);
+    }
+
+    public boolean isSymmetric1(TreeNode root) {
+        if (root == null) return true;
+
+        LinkedList<TreeNode> queue = new LinkedList<>();
+        queue.add(root.left);
+        queue.add(root.right);
+        while (!queue.isEmpty()) {
+            TreeNode left = queue.poll();
+            TreeNode right = queue.poll();
+            if (left == null && right == null) continue;
+
+            if (left == null || right == null) return false;
+
+            if (left.val != right.val) return false;
+
+            queue.add(left.left);
+            queue.add(right.right);
+            queue.add(left.right);
+            queue.add(right.left);
+        }
+        return true;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/invert-binary-tree">226. 翻转二叉树</a>
+     *
+     * @param root
+     * @return
+     */
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null) return null;
+        dfs(root);
+        return root;
+    }
+
+    private void dfs(TreeNode node) {
+        if (node == null) return;
+
+        TreeNode temp = node.left;
+        node.left = node.right;
+        node.right = temp;
+        dfs(node.left);
+        dfs(node.right);
+    }
+
+    public TreeNode invertTree1(TreeNode root) {
+        if (root == null) return null;
+
+        Stack<TreeNode> stack = new Stack<>();
+        stack.push(root);
+        TreeNode node;
+        while (!stack.isEmpty()) {
+            node = stack.pop();
+            if (node.left != null) stack.push(node.left);
+            if (node.right != null) stack.push(node.right);
+            TreeNode temp = node.left;
+            node.left = node.right;
+            node.right = temp;
+        }
+
+        return root;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/kth-largest-element-in-an-array">215. 数组中的第K个最大元素</a>
+     *
+     * @param nums
+     * @param k
+     * @return
+     */
+    public int findKthLargest(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k < 1) return -1;
+
+
+        PriorityQueue<Integer> pq = new PriorityQueue<>(nums.length, Integer::compareTo);
+        //region 有待优化
+        /*
+                Comparator<Integer> integerComparator = (o1, o2) -> -o1.compareTo(o2);
+        for (int num : nums) pq.add(num);
+        int result = 0;
+        for (; k > 0 && !pq.isEmpty(); k--)
+            result = pq.poll();
+        return result; */
+        //endregion
+
+        for (int i = 0; i < nums.length; i++) {
+            if (pq.size() < k) pq.add(nums[i]);
+            else if (!pq.isEmpty() && pq.peek() < nums[i]) {
+                pq.poll();
+                pq.add(nums[i]);
+            }
+        }
+        return pq.peek();
+    }
+
+    public int findKthLargest1(int[] nums, int k) {
+        PriorityQueue<Integer> minHeap = new PriorityQueue<>();
+
+        for (int num : nums) {
+            if (minHeap.size() < k) {
+                minHeap.offer(num);
+            } else if (!minHeap.isEmpty() && num > minHeap.peek()) {
+                minHeap.poll();
+                minHeap.offer(num);
+            }
+        }
+
+        return minHeap.peek();
+    }
+
+    /**
+     * 效率低
+     * <a href="https://leetcode.cn/problems/top-k-frequent-elements">347. 前 K 个高频元素</a>
+     *
+     * @param nums
+     * @param k
+     * @return
+     */
+    public int[] topKFrequent(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k < 1) return new int[0];
+
+        // K: 元素, V: 元素出现的次数
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int num : nums) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        return map.entrySet()
+                .stream()
+                // 按照频率排倒序
+                .sorted(Map.Entry
+                        .comparingByValue(Comparator.reverseOrder())
+                )
+                // 取前 K 个 map.K
+                .limit(k)
+                .mapToInt(Map.Entry::getKey)
+                .toArray();
+    }
+
+    public int[] topKFrequent1(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k < 1) return new int[0];
+
+        int[] result = new int[k];
+        // K: 元素, V: 元素出现的次数
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int num : nums) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+
+        // 逆频率队列, PriorityQueue 存放的元素排序算法需要依赖于 Map.V 频率 来进行排序
+        PriorityQueue<Integer> queue = new PriorityQueue<>((o1, o2) -> -(map.get(o1) - map.get(o2)));
+        // TODO 继续优化
+        map.forEach((key, value) -> queue.add(key));
+        for (int i = 0; i < k && !queue.isEmpty(); i++) {
+            result[i] = queue.poll();
+        }
+        return result;
+    }
+
+    public int[] topKFrequent2(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k < 1) return new int[0];
+
+        int[] result = new int[k];
+        // K: 元素, V: 元素出现的次数
+        Map<Integer, Integer> map = new HashMap<>();
+        for (int num : nums) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+        // 维护一个最小堆
+        PriorityQueue<Integer> queue = new PriorityQueue<>(k, Comparator.comparingInt(map::get));
+        Iterator<Map.Entry<Integer, Integer>> mapIterator = map.entrySet().iterator();
+        for (int i = 0; i < nums.length && mapIterator.hasNext(); i++) {
+            Integer key = mapIterator.next().getKey();
+            if (queue.size() < k) queue.add(key);
+            else if (map.get(queue.peek()) < map.get(key)) {
+                // 当前 元素的频率 与最小堆顶部元素的频率比较  频率高者入最小堆
+                queue.poll();
+                queue.add(key);
+            }
+        }
+        for (int i = 0; i < k && !queue.isEmpty(); i++) {
+            result[i] = queue.poll();
+        }
+        return result;
     }
 }

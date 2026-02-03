@@ -2,6 +2,7 @@ package com.qq.ijay997;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -196,5 +197,53 @@ class SolutionTest {
         assertEquals(3, solution.maxDepth(root));
     }
 
+    @Test
+    public void testComplexNonSymmetricTree() {
+        Solution solution = new Solution();
+        // 构建复杂非对称树:
+        //           1
+        //         /   \
+        //        2     2
+        //       / \   / \
+        //      3   4 4   3
+        //     /          /
+        //    5          5
+        TreeNode root = new TreeNode(1);
+        root.left = new TreeNode(2);
+        root.right = new TreeNode(2);
+        root.left.left = new TreeNode(3);
+        root.left.right = new TreeNode(4);
+        root.right.left = new TreeNode(4);
+        root.right.right = new TreeNode(3);
+        root.left.left.left = new TreeNode(5);
+        root.right.left.left = new TreeNode(5); // 注意这里的位置
 
+        assertFalse(solution.isSymmetric1(root));
+    }
+
+    @Test
+    void invertTree() {
+        TreeNode root = new TreeNode(4);
+        root.left = new TreeNode(2, new TreeNode(1), new TreeNode(3));
+        root.right = new TreeNode(7, new TreeNode(6), new TreeNode(9));
+        Solution solution = new Solution();
+        TreeNode treeNode = solution.invertTree1(root);
+        System.out.println(treeNode);
+    }
+
+    @Test
+    void findKthLargest() {
+        Solution solution = new Solution();
+        int[] num = {3, 2, 1, 5, 6, 4};
+        int kthLargest = solution.findKthLargest(num, 2);
+        System.out.println(kthLargest);
+    }
+
+    @Test
+    void topKFrequent() {
+        int[] nums = {4, 1, -1, 2, -1, 2, 3};
+        Solution solution = new Solution();
+        int[] result = solution.topKFrequent(nums, 2);
+        System.out.println(result);
+    }
 }
