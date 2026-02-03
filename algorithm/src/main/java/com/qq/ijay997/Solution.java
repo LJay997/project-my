@@ -10,8 +10,7 @@ import java.util.*;
 public class Solution {
 
     /**
-     * 1. 两数之和
-     * https://leetcode.cn/problems/two-sum/?spm=5176.28103460.0.0.3f906308rp5Ufn
+     * <a href="https://leetcode.cn/problems/two-sum/">1. 两数之和</a>
      */
     public int[] twoSum(int[] nums, int target) {
         for (int left = 0; left < nums.length - 1; left++) {
@@ -49,8 +48,8 @@ public class Solution {
     }
 
     /**
-     * 删除排序数组中的重复项
-     * https://leetcode.cn/problems/remove-duplicates-from-sorted-array/solutions/728105/shan-chu-pai-xu-shu-zu-zhong-de-zhong-fu-tudo/?spm=5176.28103460.0.0.3f906308rp5Ufn
+     *
+     * <a href="https://leetcode.cn/problems/remove-duplicates-from-sorted-array/solutions/728105/shan-chu-pai-xu-shu-zu-zhong-de-zhong-fu-tudo">删除排序数组中的重复项</a>
      *
      * @param nums
      * @return 数组的长度
@@ -67,8 +66,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/remove-element
-     * 27. 移除元素
+     * <a href="https://leetcode.cn/problems/remove-element">27. 移除元素</a>
      *
      * @param nums
      * @param val
@@ -85,8 +83,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/search-insert-position
-     * 35. 搜索插入位置
+     * <a href="https://leetcode.cn/problems/search-insert-position">35. 搜索插入位置</a>
      *
      * @param nums
      * @param target
@@ -107,8 +104,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/best-time-to-buy-and-sell-stock
-     * 121. 买卖股票的最佳时机
+     * <a href="https://leetcode.cn/problems/best-time-to-buy-and-sell-stock">121. 买卖股票的最佳时机</a>
      *
      * @param prices
      * @return
@@ -130,8 +126,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/move-zeroes/description
-     * 283. 移动零
+     * <a href="https://leetcode.cn/problems/move-zeroes/description">283. 移动零</a>
      *
      * @param nums
      */
@@ -147,8 +142,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/longest-substring-without-repeating-characters
-     * 3. 无重复字符的最长子串
+     * <a href="https://leetcode.cn/problems/longest-substring-without-repeating-characters">3. 无重复字符的最长子串</a>
      *
      * @param s
      * @return
@@ -176,9 +170,8 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/maximum-subarray
+     * <a href="https://leetcode.cn/problems/maximum-subarray">53. 最大子数组和</a>
      * TODO 再次学习
-     * 53. 最大子数组和
      *
      * @param nums
      * @return
@@ -216,8 +209,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/reverse-linked-list
-     * 206. 反转链表
+     * <a href="https://leetcode.cn/problems/reverse-linked-list">206. 反转链表</a>
      *
      * @param head
      * @return
@@ -238,8 +230,8 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/merge-two-sorted-lists
-     * 21. 合并两个有序链表 TODO 继续学习
+     * <a href="https://leetcode.cn/problems/merge-two-sorted-lists">21. 合并两个有序链表</a>
+     * TODO 继续学习
      *
      * @param list1
      * @param list2
@@ -270,8 +262,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/linked-list-cycle
-     * 141. 环形链表
+     * <a href="https://leetcode.cn/problems/linked-list-cycle">141. 环形链表</a>
      *
      * @param head
      * @return
@@ -303,8 +294,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/remove-nth-node-from-end-of-list
-     * 19. 删除链表的倒数第 N 个结点
+     * <a href="https://leetcode.cn/problems/remove-nth-node-from-end-of-list">19. 删除链表的倒数第 N 个结点</a>
      * TODO 优化优化
      *
      * @param head
@@ -338,8 +328,7 @@ public class Solution {
     }
 
     /**
-     * https://leetcode.cn/problems/merge-k-sorted-lists
-     * 23. 合并K个升序链表i
+     * <a href="https://leetcode.cn/problems/merge-k-sorted-lists">23. 合并K个升序链表i</a>
      *
      * @param lists
      * @return
@@ -386,101 +375,46 @@ public class Solution {
         return dummy.next;
     }
 
-    public static void main(String[] args) {
-        Solution solution = new Solution();
-        // 测试用例1: 正常情况
-        System.out.println("测试用例1:");
-        ListNode l1 = createLinkedList(new int[]{1, 4, 5});
-        ListNode l2 = createLinkedList(new int[]{1, 3, 4});
-        ListNode l3 = createLinkedList(new int[]{2, 6});
-        ListNode[] lists1 = {l1, l2, l3};
-        ListNode result1 = solution.mergeKLists(lists1);
-        printLinkedList(result1); // 预期输出: 1->1->2->3->4->4->5->6
-
-        // 测试用例2: 空数组
-        System.out.println("\n测试用例2:");
-        ListNode[] lists2 = {};
-        ListNode result2 = solution.mergeKLists1(lists2);
-        System.out.println(result2 == null ? "null" : printLinkedListToString(result2)); // 预期输出: null
-
-        // 测试用例3: 包含空链表
-        System.out.println("\n测试用例3:");
-        ListNode l4 = createLinkedList(new int[]{1, 2, 3});
-        ListNode l5 = null;
-        ListNode l6 = createLinkedList(new int[]{4, 5});
-        ListNode[] lists3 = {l4, l5, l6};
-        ListNode result3 = solution.mergeKLists1(lists3);
-        printLinkedList(result3); // 预期输出: 1->2->3->4->5
-
-        // 测试用例4: 单个链表
-        System.out.println("\n测试用例4:");
-        ListNode l7 = createLinkedList(new int[]{1, 2, 3});
-        ListNode[] lists4 = {l7};
-        ListNode result4 = solution.mergeKLists1(lists4);
-        printLinkedList(result4); // 预期输出: 1->2->3
-
-        // 测试用例5: 全部为空链表
-        System.out.println("\n测试用例5:");
-        ListNode l8 = null;
-        ListNode l9 = null;
-        ListNode[] lists5 = {l8, l9};
-        ListNode result5 = solution.mergeKLists1(lists5);
-        System.out.println(result5 == null ? "null" : printLinkedListToString(result5)); // 预期输出: null
-
-    }
-
-    // 辅助方法：创建链表
-    private static ListNode createLinkedList(int[] values) {
-        if (values == null || values.length == 0) {
-            return null;
-        }
-
-        ListNode head = new ListNode(values[0]);
-        ListNode current = head;
-        for (int i = 1; i < values.length; i++) {
-            current.next = new ListNode(values[i]);
-            current = current.next;
-        }
-        return head;
-    }
-
-    // 辅助方法：打印链表
-    private static void printLinkedList(ListNode head) {
-        String result = printLinkedListToString(head);
-        System.out.print(result);
-    }
-
-    // 辅助方法：将链表转换为字符串
-    private static String printLinkedListToString(ListNode head) {
-        StringBuilder sb = new StringBuilder();
-        ListNode current = head;
-        while (current != null) {
-            sb.append(current.val);
-            if (current.next != null) {
-                sb.append("->");
-            }
-            current = current.next;
-        }
-        return sb.toString();
-    }
-
     /**
-     * https://leetcode.cn/problems/binary-tree-level-order-traversal
-     * 102. 二叉树的层序遍历 TODO
+     * <a href="https://leetcode.cn/problems/binary-tree-level-order-traversal">102. 二叉树的层序遍历</a>
      *
      * @param root
      * @return
      */
     public List<List<Integer>> levelOrder(TreeNode root) {
-        if (root == null) return new ArrayList<>();
-        TreeNode curNode = root;
-        ArrayList<TreeNode> list = new ArrayList<>();
-        list.add(curNode);
-        while (!list.isEmpty()){
+        ArrayList<List<Integer>> result = new ArrayList<>();
+        if (root == null) return result;
 
+        TreeNode curNode = root;
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.add(curNode);
+        while (!queue.isEmpty()) {
+            int size = queue.size();
+            ArrayList<Integer> curLevel = new ArrayList<>();
+            for (int i = 0; i < size; i++) {
+                curNode = queue.poll();
+                curLevel.add(curNode.val);
+                if (curNode.left != null)
+                    queue.add(curNode.left);
+                if (curNode.right != null)
+                    queue.add(curNode.right);
+            }
+            result.add(curLevel);
         }
-        return null;
+        return result;
     }
 
-
+    /**
+     * 104. 二叉树的最大深度
+     * https://leetcode.cn/problems/maximum-depth-of-binary-tree
+     *
+     * @param root
+     * @return
+     */
+    public int maxDepth(TreeNode root) {
+        if (root == null) return 0;
+        int leftDepth = maxDepth(root.left);
+        int rightDepth = maxDepth(root.right);
+        return Math.max(leftDepth, rightDepth) + 1;
+    }
 }
