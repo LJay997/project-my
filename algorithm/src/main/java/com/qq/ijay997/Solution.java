@@ -627,4 +627,108 @@ public class Solution {
         }
         return result;
     }
+
+    /**
+     * <a href="https://leetcode.cn/problems/intersection-of-two-linked-lists">160. 相交链表</a>
+     *
+     * @param headA
+     * @param headB
+     * @return
+     */
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        if (headA == null || headB == null) return null;
+
+        HashSet<ListNode> set = new HashSet<>();
+        while (headA != null) {
+            set.add(headA);
+            headA = headA.next;
+        }
+
+        for (; headB != null; headB = headB.next) {
+            if (set.contains(headB)) return headB;
+        }
+        return null;
+    }
+
+    /**
+     * 160. 相交链表-双指针
+     *
+     * @param headA
+     * @param headB
+     * @return
+     */
+    public ListNode getIntersectionNode1(ListNode headA, ListNode headB) {
+        if (headA == null || headB == null) return null;
+
+        ListNode pA = headA, pB = headB;
+        while (pA != pB) {
+            if (pA != null) pA = pA.next;
+            else pA = headB;
+            if (pB != null) pB = pB.next;
+            else pB = headA;
+        }
+        return pA;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/lowest-common-ancestor-of-a-binary-tree">236. 二叉树的最近公共祖先</a>
+     *
+     * @param root
+     * @param p
+     * @param q
+     * @return
+     */
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || root == p || root == q) return root;
+
+        TreeNode left = lowestCommonAncestor(root.left, p, q);
+        TreeNode right = lowestCommonAncestor(root.right, p, q);
+        if (left != null && right != null) return root;
+        return left != null ? left : right;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/palindrome-linked-list">234. 回文链表</a>
+     *
+     * @param head
+     * @return
+     */
+    public boolean isPalindrome(ListNode head) {
+        if (head == null) return false;
+
+        LinkedList<Integer> list = new LinkedList<>();
+        for (; head != null; head = head.next) {
+            list.add(head.val);
+        }
+        while (list.size() > 1) {
+            if (!Objects.equals(list.poll(), list.pollLast())) return false;
+        }
+        return true;
+    }
+
+    private ListNode frontPointer;
+
+    public boolean isPalindrome1(ListNode head) {
+        frontPointer = head;
+        return recursivelyCheck(head);
+    }
+
+    /**
+     * 递归检查 TODO 02-05 继续学习
+     *
+     * @param currentNode
+     * @return
+     */
+    private boolean recursivelyCheck(ListNode currentNode) {
+        if (currentNode == null) return true;
+
+        // 递归检查后续节点
+        if (!recursivelyCheck(currentNode.next)) return false;
+
+        if (!Objects.equals(currentNode.val, frontPointer.val)) return false;
+
+        // 移动 frontPointer 指针
+        frontPointer = frontPointer.next;
+        return true;
+    }
 }

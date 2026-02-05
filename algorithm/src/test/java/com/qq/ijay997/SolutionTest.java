@@ -1,54 +1,61 @@
 package com.qq.ijay997;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class SolutionTest {
 
+    private Solution solution;
+
+    @BeforeEach
+    void setUp() {
+        solution = new Solution();
+    }
+
     @Test
     void moveZeroes() {
         int[] nums = {1, 0, 1};
-        new Solution().moveZeroes(nums);
+        solution.moveZeroes(nums);
         assertArrayEquals(new int[]{1, 1, 0}, nums);
     }
 
     @Test
     void lengthOfLongestSubstring() {
-        assertEquals(2, new Solution().lengthOfLongestSubstring("abcabcbb"));
+        assertEquals(2, solution.lengthOfLongestSubstring("abcabcbb"));
     }
 
     @Test
     void maxSubArray() {
-        assertEquals(6, new Solution().maxSubArray(new int[]{-2, 1, -3, 4, -1, 2, 1, -5, 4}));
+        assertEquals(6, solution.maxSubArray(new int[]{-2, 1, -3, 4, -1, 2, 1, -5, 4}));
     }
 
     @Test
     void twoSum() {
-        assertArrayEquals(new int[]{0, 1}, new Solution().twoSum(new int[]{2, 7, 11, 15}, 9));
+        assertArrayEquals(new int[]{0, 1}, solution.twoSum(new int[]{2, 7, 11, 15}, 9));
     }
 
     @Test
     void twoSum2() {
-        assertArrayEquals(new int[]{0, 1}, new Solution().twoSum2(new int[]{2, 7, 11, 15}, 9));
+        assertArrayEquals(new int[]{0, 1}, solution.twoSum2(new int[]{2, 7, 11, 15}, 9));
     }
 
     @Test
     void removeDuplicates() {
-        assertEquals(2, new Solution().removeDuplicates(new int[]{1, 1, 2}));
+        assertEquals(2, solution.removeDuplicates(new int[]{1, 1, 2}));
     }
 
     @Test
     void removeElement() {
-        assertEquals(2, new Solution().removeElement(new int[]{3, 2, 2, 3}, 3));
+        assertEquals(2, solution.removeElement(new int[]{3, 2, 2, 3}, 3));
     }
 
     @Test
     void searchInsert() {
-        assertEquals(2, new Solution().searchInsert(new int[]{1, 3, 5, 6}, 5));
+        assertEquals(2, solution.searchInsert(new int[]{1, 3, 5, 6}, 5));
     }
 
     @Test
@@ -58,12 +65,12 @@ class SolutionTest {
         head.next.next = new ListNode(3);
         head.next.next.next = new ListNode(4);
         head.next.next.next.next = new ListNode(5);
-        ListNode reverse = new Solution().reverseList(head);
+        ListNode reverse = solution.reverseList(head);
     }
 
     @Test
     void mergeTwoLists() {
-        Solution solution = new Solution();
+
 
         // 构建测试数据: list1 = [1,2,4]
         ListNode list1 = new ListNode(1);
@@ -91,7 +98,7 @@ class SolutionTest {
 
     @Test
     public void TestMergeKLists() {
-        Solution solution = new Solution();
+
         // 测试用例1: 正常情况
         System.out.println("测试用例1:");
         ListNode l1 = createLinkedList(new int[]{1, 4, 5});
@@ -173,7 +180,7 @@ class SolutionTest {
         TreeNode root = new TreeNode(3,
                 new TreeNode(9), new TreeNode(20,
                 new TreeNode(15), new TreeNode(7)));
-        Solution solution = new Solution();
+
         List<List<Integer>> lists = solution.levelOrder(root);
         System.out.println(lists); // // 预期结果: [[3],[9,20],[15,7]]
     }
@@ -193,13 +200,13 @@ class SolutionTest {
         root.right = new TreeNode(20);
         root.right.left = new TreeNode(15);
         root.right.right = new TreeNode(7);
-        Solution solution = new Solution();
+
         assertEquals(3, solution.maxDepth(root));
     }
 
     @Test
     public void testComplexNonSymmetricTree() {
-        Solution solution = new Solution();
+
         // 构建复杂非对称树:
         //           1
         //         /   \
@@ -226,14 +233,14 @@ class SolutionTest {
         TreeNode root = new TreeNode(4);
         root.left = new TreeNode(2, new TreeNode(1), new TreeNode(3));
         root.right = new TreeNode(7, new TreeNode(6), new TreeNode(9));
-        Solution solution = new Solution();
+
         TreeNode treeNode = solution.invertTree1(root);
         System.out.println(treeNode);
     }
 
     @Test
     void findKthLargest() {
-        Solution solution = new Solution();
+
         int[] num = {3, 2, 1, 5, 6, 4};
         int kthLargest = solution.findKthLargest(num, 2);
         System.out.println(kthLargest);
@@ -242,8 +249,116 @@ class SolutionTest {
     @Test
     void topKFrequent() {
         int[] nums = {4, 1, -1, 2, -1, 2, 3};
-        Solution solution = new Solution();
+
         int[] result = solution.topKFrequent(nums, 2);
         System.out.println(result);
+    }
+
+    @Test
+    void getIntersectionNode1() {
+        // 创建测试链表
+        ListNode common = new ListNode(8);
+        common.next = new ListNode(4);
+        common.next.next = new ListNode(5);
+
+        // 链表 A: 4 -> 1 -> 8 -> 4 -> 5
+        ListNode headA = new ListNode(4);
+        headA.next = new ListNode(1);
+        headA.next.next = common;
+
+        // 链表 B: 5 -> 6 -> 1 -> 8 -> 4 -> 5
+        ListNode headB = new ListNode(5);
+        headB.next = new ListNode(6);
+        headB.next.next = new ListNode(1);
+        headB.next.next.next = common;
+
+        // 调用方法测试
+
+        ListNode result = solution.getIntersectionNode1(headA, headB);
+
+        // 输出结果
+        if (result != null) {
+            System.out.println("相交节点的值为: " + result.val); // 应输出 8
+        } else {
+            System.out.println("无相交节点");
+        }
+
+        // 边界测试：两个链表完全不相交
+        ListNode headC = new ListNode(1);
+        headC.next = new ListNode(2);
+        ListNode headD = new ListNode(3);
+        headD.next = new ListNode(4);
+
+        ListNode result2 = solution.getIntersectionNode1(headC, headD);
+        if (result2 != null) {
+            System.out.println("相交节点的值为: " + result2.val);
+        } else {
+            System.out.println("无相交节点"); // 应输出此信息
+        }
+    }
+
+    @Test
+    void lowestCommonAncestor() {
+        // 构造测试用的二叉树
+        TreeNode root = new TreeNode(3);
+        root.left = new TreeNode(5);
+        root.right = new TreeNode(1);
+        root.left.left = new TreeNode(6);
+        root.left.right = new TreeNode(2);
+        root.right.left = new TreeNode(0);
+        root.right.right = new TreeNode(8);
+        root.left.right.left = new TreeNode(7);
+        root.left.right.right = new TreeNode(4);
+
+
+        // 测试用例1: p = 5, q = 1 -> 预期结果: 3
+        TreeNode p1 = root.left; // 节点5
+        TreeNode q1 = root.right; // 节点1
+        TreeNode result1 = solution.lowestCommonAncestor(root, p1, q1);
+        System.out.println("Test Case 1: Expected 3, Got " + result1.val);
+
+        // 测试用例2: p = 5, q = 4 -> 预期结果: 5
+        TreeNode p2 = root.left; // 节点5
+        TreeNode q2 = root.left.right.right; // 节点4
+        TreeNode result2 = solution.lowestCommonAncestor(root, p2, q2);
+        System.out.println("Test Case 2: Expected 5, Got " + result2.val);
+
+        // 测试用例3: p = 6, q = 2 -> 预期结果: 5
+        TreeNode p3 = root.left.left; // 节点6
+        TreeNode q3 = root.left.right; // 节点2
+        TreeNode result3 = solution.lowestCommonAncestor(root, p3, q3);
+        System.out.println("Test Case 3: Expected 5, Got " + result3.val);
+
+    }
+
+    @Test
+    void isPalindrome1() {
+        // 测试用例1: 回文链表 [1, 2, 2, 1]
+        ListNode head1 = new ListNode(1);
+        head1.next = new ListNode(2);
+        head1.next.next = new ListNode(2);
+        head1.next.next.next = new ListNode(1);
+        System.out.println("Test Case 1: " + solution.isPalindrome1(head1)); // 预期输出: true
+
+        // 测试用例2: 非回文链表 [1, 2]
+        ListNode head2 = new ListNode(1);
+        head2.next = new ListNode(2);
+        System.out.println("Test Case 2: " + solution.isPalindrome1(head2)); // 预期输出: false
+
+        // 测试用例3: 单节点链表 [1]
+        ListNode head3 = new ListNode(1);
+        System.out.println("Test Case 3: " + solution.isPalindrome1(head3)); // 预期输出: true
+
+        // 测试用例4: 空链表
+        ListNode head4 = null;
+        System.out.println("Test Case 4: " + solution.isPalindrome1(head4)); // 预期输出: false
+
+        // 测试用例5: 回文链表 [1, 2, 3, 2, 1]
+        ListNode head5 = new ListNode(1);
+        head5.next = new ListNode(2);
+        head5.next.next = new ListNode(3);
+        head5.next.next.next = new ListNode(2);
+        head5.next.next.next.next = new ListNode(1);
+        System.out.println("Test Case 5: " + solution.isPalindrome1(head5)); // 预期输出: true
     }
 }
