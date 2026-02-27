@@ -3,6 +3,7 @@ package com.qq.ijay997;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -360,5 +361,47 @@ class SolutionTest {
         head5.next.next.next = new ListNode(2);
         head5.next.next.next.next = new ListNode(1);
         System.out.println("Test Case 5: " + solution.isPalindrome1(head5)); // 预期输出: true
+    }
+
+    @Test
+    void testGroupAnagrams() {
+        Solution solution = new Solution();
+
+        // 测试用例1：正常情况
+        String[] strs1 = {"eat", "tea", "tan", "ate", "nat", "bat"};
+        List<List<String>> result1 = solution.groupAnagrams1(strs1);
+        System.out.println("结果1: " + result1);
+        // 预期输出: [[bat], [nat, tan], [ate, eat, tea]] （顺序可能不同）
+
+        // 测试用例2：包含空字符串
+        String[] strs2 = {"", ""};
+        List<List<String>> result2 = solution.groupAnagrams1(strs2);
+        System.out.println("结果2: " + result2);
+        // 预期输出: [["", ""]]
+
+        // 测试用例3：单个字符
+        String[] strs3 = {"a"};
+        List<List<String>> result3 = solution.groupAnagrams1(strs3);
+        System.out.println("结果3: " + result3);
+        // 预期输出: [["a"]]
+    }
+
+    @Test
+    void longestConsecutive() {
+        int[] nums = {100, 4, 200, 1, 3, 2};
+        System.out.println(solution.longestConsecutive(nums));
+    }
+
+    @Test
+    void moveZeroes1() {
+        int[] nums = {0, 1, 0, 3, 12};
+        solution.moveZeroes1(nums);
+        System.out.println(Arrays.toString(nums));
+    }
+
+    @Test
+    void maxArea() {
+        int[] height = {1, 8, 6, 2, 5, 4, 8, 3, 7};
+        System.out.println(solution.maxArea(height));
     }
 }

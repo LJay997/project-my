@@ -731,4 +731,126 @@ public class Solution {
         frontPointer = frontPointer.next;
         return true;
     }
+
+    /**
+     * <a href="https://leetcode.cn/problems/group-anagrams">49. 字母异位词分组</a>
+     * 排序法
+     *
+     * @param strs
+     * @return
+     */
+    public List<List<String>> groupAnagrams(String[] strs) {
+        if (strs == null || strs.length == 0) return new ArrayList<>();
+
+        Map<String, List<String>> map = new HashMap<>();
+        char[] charArray;
+        for (String str : strs) {
+            charArray = str.toCharArray();
+            Arrays.sort(charArray);
+            String key = new String(charArray);
+            map.computeIfAbsent(key, k -> new ArrayList<>())
+                    .add(str);
+        }
+        return new ArrayList<>(map.values());
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/group-anagrams">49. 字母异位词分组</a>
+     * 计数法
+     *
+     * @param strs
+     * @return
+     */
+    public List<List<String>> groupAnagrams1(String[] strs) {
+        if (strs == null || strs.length == 0) return new ArrayList<>();
+
+        HashMap<String, List<String>> map = new HashMap<>();
+        for (String str : strs) {
+            // 统计每个字符出现的次数
+            int[] count = new int[26];
+            for (char c : str.toCharArray()) {
+                count[c - 'a']++;
+            }
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 26; i++) {
+                sb.append(count[i]);
+            }
+            String key = sb.toString();
+            map.computeIfAbsent(key, k -> new ArrayList<>()).add(str);
+        }
+        return new ArrayList<>(map.values());
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/longest-consecutive-sequence">128. 最长连续序列</a>
+     *
+     * @param nums
+     * @return
+     */
+    public int longestConsecutive(int[] nums) {
+        if (nums == null || nums.length == 0) return 0;
+
+        int maxLen = 1, curLength = 1;
+        Arrays.sort(nums);
+        for (int i = 1; i < nums.length; i++) {
+            if (nums[i] == nums[i - 1] + 1) {
+                curLength++;
+                maxLen = Math.max(maxLen, curLength);
+            } else {
+                curLength = 1;
+            }
+        }
+        return maxLen;
+    }
+
+    public void moveZeroes1(int[] nums) {
+        if (nums == null || nums.length == 0) return;
+
+        int slow = 0, fast = 1;
+        for (; fast < nums.length; fast++) {
+            if (nums[slow] != 0) slow++;
+
+            if (nums[slow] == 0 && nums[fast] != 0) {
+                nums[slow] = nums[fast];
+                nums[fast] = 0;
+                slow++;
+            }
+        }
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/container-with-most-water">11. 盛最多水的容器</a>
+     * 双指针
+     * @param height
+     * @return
+     */
+    public int maxArea(int[] height) {
+        if (height == null || height.length == 0) return 0;
+
+        int left = 0, right = height.length - 1, maxArea = 0, curArea = 0;
+        while (left < right) {
+            curArea = Math.min(height[left], height[right]) * (right - left);
+            maxArea = Math.max(maxArea, curArea);
+            if (height[left] < height[right]) left++;
+            else right--;
+        }
+        return maxArea;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/3sum">15. 三数之和</a>
+     * @param nums
+     * @return
+     */
+    public List<List<Integer>> threeSum(int[] nums) {
+        if (nums == null || nums.length < 3) return new ArrayList<>();
+
+        List<List<Integer>> res = new ArrayList<>();
+        HashMap<Integer, Integer> map = new HashMap<>(nums.length);
+        for (int i = 0; i < nums.length ; i++){
+            map.put(nums[i],0 );
+        }
+        // TODO
+        return res;
+    }
 }
