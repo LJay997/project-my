@@ -1,9 +1,9 @@
 package com.qq.ijay997;
 
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.sun.jmx.remote.internal.ArrayQueue;
 
+import java.util.*;
 
 /**
  * leetcode
@@ -821,6 +821,7 @@ public class Solution {
     /**
      * <a href="https://leetcode.cn/problems/container-with-most-water">11. 盛最多水的容器</a>
      * 双指针
+     *
      * @param height
      * @return
      */
@@ -839,6 +840,7 @@ public class Solution {
 
     /**
      * <a href="https://leetcode.cn/problems/3sum">15. 三数之和</a>
+     *
      * @param nums
      * @return
      */
@@ -846,11 +848,411 @@ public class Solution {
         if (nums == null || nums.length < 3) return new ArrayList<>();
 
         List<List<Integer>> res = new ArrayList<>();
-        HashMap<Integer, Integer> map = new HashMap<>(nums.length);
-        for (int i = 0; i < nums.length ; i++){
-            map.put(nums[i],0 );
+
+        Arrays.sort(nums);
+        // 要保证 i、left、right 不重复 所以循环  nums.length - 2 次
+        for (int i = 0; i < nums.length - 2; i++) {
+            //  i = 0 的时候 没有前一个元素
+            if (i != 0 && nums[i] == nums[i - 1]) continue;
+
+            // 如果当前数字大于0，则三数之和不可能为0（因为数组已排序）
+            if (nums[i] > 0) break;
+
+            int left = i + 1, right = nums.length - 1;
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                if (sum == 0) {
+                    res.add(Arrays.asList(nums[i], nums[left], nums[right]));
+
+                    // 跳过重复元素
+                    while (left < right && nums[left] == nums[left + 1]) left++;
+                    while (left < right && nums[right] == nums[right - 1]) right--;
+                    left++;
+                    right--;
+                } else if (sum < 0) {
+                    // 如果和小于0，则左指针向右移动
+                    left++;
+                } else {
+                    // 如果和大于0，则右指针向左移动
+                    right--;
+                }
+            }
         }
-        // TODO
         return res;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/trapping-rain-water">42. 接雨水</a>
+     *
+     * @param height
+     * @return
+     */
+    public int trap(int[] height) {
+        if (height == null || height.length < 3) return 0;
+
+        int result = 0, left = 0, right = height.length - 1, leftMax = 0, rightMax = 0;
+        while (left < right) {
+            // 维护左右两侧的最大高度
+            leftMax = Math.max(leftMax, height[left]);
+            rightMax = Math.max(rightMax, height[right]);
+
+            // 贪心策略：总是处理较小的一侧
+            if (height[left] < height[right]) {
+                result += leftMax - height[left];  // 左侧水量确定
+                left++;
+            } else {
+                result += rightMax - height[right]; // 右侧水量确定
+                right--;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/longest-substring-without-repeating-characters">3. 无重复字符的最长子串</a>
+     *
+     * @param s
+     * @return
+     */
+    public int lengthOfLongestSubstring1(String s) {
+        if (s == null || s.isEmpty()) return 0;
+
+        int result = 0, slow = 0;
+        // 存放指针与字符的索引
+        HashMap<Character, Integer> map = new HashMap<>();
+        for (int fast = 0; fast < s.length(); fast++) {
+            char curChar = s.charAt(fast);
+            if (map.containsKey(curChar)) {
+                slow = Math.max(slow, map.get(curChar) + 1);
+            }
+            map.put(curChar, fast);
+            result = Math.max(result, fast - slow + 1);
+        }
+        return result;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/find-all-anagrams-in-a-string">438. 找到字符串中所有字母异位词</a>
+     *
+     * @param s
+     * @param p
+     * @return
+     */
+    public List<Integer> findAnagrams(String s, String p) {
+        if (s == null || p == null || s.length() < p.length()) return new ArrayList<>();
+
+        List<Integer> res = new ArrayList<>();
+        int pLen = p.length();
+        int sLen = s.length();
+
+        // 使用数组统计字符频次（假设只有小写字母）
+        int[] pCount = new int[26];
+        int[] windowCount = new int[26];
+
+        // 统计模式字符串p的字符频次
+        for (char c : p.toCharArray()) {
+            pCount[c - 'a']++;
+        }
+
+        // 当长度超过的时候移动左边指针
+        for (int i = 0; i < sLen; i++) {
+            windowCount[s.charAt(i) - 'a']++;
+            if (i >= pLen) {
+                windowCount[s.charAt(i - pLen) - 'a']--;
+            }
+            // 当长度符合要求时，判断频次是否相等
+            if (i >= pLen - 1) {
+                if (Arrays.equals(pCount, windowCount)) {
+                    res.add(i - pLen + 1);
+                }
+            }
+        }
+
+        return res;
+    }
+
+    public List<Integer> findAnagrams1(String s, String p) {
+        List<Integer> res = new ArrayList<>();
+        if (s == null || p == null || s.length() < p.length()) return res;
+
+        int pLength = p.length();
+        ArrayList<Character> list = new ArrayList<>(pLength);
+        for (char c : p.toCharArray()) {
+            list.add(c);
+        }
+
+        ArrayDeque<Character> deque = new ArrayDeque<>(pLength);
+        for (int i = 0; i < s.length(); i++) {
+            deque.add(s.charAt(i));
+            if (deque.size() == pLength) {
+                if (list.containsAll(deque)) {
+                    res.add(i - pLength + 1);
+                }
+                deque.removeFirst();
+            }
+        }
+        return res;
+    }
+
+    public int[] twoSum1(int[] nums, int target) {
+        if (nums == null || nums.length < 2) return new int[0];
+
+        int[] result = new int[2];
+        // 值, 下标
+        HashMap<Integer, Integer> map = new HashMap<>();
+
+        int complement;
+        for (int i = 0; i < nums.length; i++) {
+
+            complement = target - nums[i];
+            if (map.containsValue(complement) && map.get(complement) != i) {
+                result[0] = map.get(complement);
+                result[1] = i;
+                break;
+            }
+            map.put(i, nums[i]);
+        }
+        return result;
+    }
+
+    public boolean hasCycle3(ListNode head) {
+        if (head == null || head.next == null) return false;
+
+        ListNode slow = head;
+        ListNode fast = head.next;
+        while (fast != null && fast.next != null) {
+            if (slow == fast) return true;
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        return false;
+    }
+
+    public ListNode removeNthFromEnd1(ListNode head, int n) {
+        if (head == null || head.next == null) return null;
+
+        ListNode dummy = new ListNode(0, head);
+        ListNode slow = dummy, fast = dummy;
+        for (int i = 0; i < n + 1; i++) {
+            fast = fast.next;
+        }
+        for (; fast != null; ) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        slow.next = slow.next.next;
+        return dummy.next;
+    }
+
+    public ListNode getIntersectionNode2(ListNode headA, ListNode headB) {
+        if (headA == null || headB == null) return null;
+
+        ListNode index1 = headA, index2 = headB;
+        while (index1 != index2) {
+            index1 = index1 == null ? headB : index1.next;
+            index2 = index2 == null ? headA : index2.next;
+        }
+        return index1;
+    }
+
+    public int maxDepth1(TreeNode root) {
+        if (root == null) return 0;
+        int leftDepth = maxDepth1(root.left);
+        int rightDepth = maxDepth1(root.right);
+        return Math.max(leftDepth, rightDepth) + 1;
+    }
+
+    public int maxDepth2(TreeNode root) {
+        if (root == null) return 0;
+
+        ArrayDeque<TreeNode> deque = new ArrayDeque<>();
+        deque.add(root);
+        int depth = 0;
+        while (!deque.isEmpty()) {
+            int size = deque.size();
+            for (int i = 0; i < size; i++) {
+                TreeNode node = deque.poll();
+                if (node.left != null) {
+                    deque.add(node.left);
+                }
+                if (node.right != null) {
+                    deque.add(node.right);
+                }
+            }
+            depth++;
+        }
+        return depth;
+    }
+
+    public int climbStairs(int n) {
+        if (n <= 2) return n;
+        int[] dp = new int[n + 1];
+        dp[1] = 1;
+        dp[2] = 2;
+        for (int i = 3; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
+    }
+
+    public void deleteNode(ListNode node) {
+        if (node == null) return;
+        node.val = node.next.val;
+        node.next = node.next.next;
+    }
+
+    /**
+     * <a href="https://leetcode.cn/problems/copy-list-with-random-pointer">138. 复制带随机指针的链表</a>
+     *
+     * @param head
+     * @return
+     */
+    public Node copyRandomList(Node head) {
+        if (head == null) return null;
+
+        Node cur = head;
+        HashMap<Node /*旧链表*/, Node /*新链表*/> map = new HashMap<>();
+
+        // 创建节点
+        for (; cur != null; cur = cur.next) {
+            map.put(cur, new Node(cur.val));
+        }
+        // 处理新链表的属性 next、 random
+        for (cur = head; cur != null; cur = cur.next) {
+            map.get(cur).next = map.get(cur.next);
+            map.get(cur).random = map.get(cur.random);
+        }
+        return map.get(head);
+    }
+
+    public boolean isValid(String s) {
+        if (s == null || s.isEmpty() || s.length() % 2 != 0) return false;
+
+        char curChar;
+        ArrayDeque<Character> stack = new ArrayDeque<>();
+        for (int i = 0; i < s.length(); i++) {
+            curChar = s.charAt(i);
+            if (curChar == '('
+                    || curChar == '['
+                    || curChar == '{') {
+                stack.add(curChar);
+                continue;
+            }
+
+            if (stack.isEmpty()) return false;
+            // 栈顶元素
+            Character lastQu = stack.peekLast();
+            if ((curChar == ')' && lastQu == '(')
+                    || (curChar == ']' && lastQu == '[')
+                    || (curChar == '}' && lastQu == '{')) {
+                stack.pollLast();
+                continue;
+            }
+            return false;
+        }
+        return stack.isEmpty();
+    }
+
+    public ListNode partition(ListNode head, int x) {
+        ListNode smallNode = new ListNode(0), largeNode = new ListNode(0);
+        ListNode smallIndex = smallNode, largeIndex = largeNode, curIndex = head;
+
+        for (; curIndex != null; curIndex = curIndex.next) {
+            if (curIndex.val < x) {
+                smallIndex.next = curIndex;
+                smallIndex = smallIndex.next;
+            } else {
+                largeIndex.next = curIndex;
+                largeIndex = largeIndex.next;
+            }
+        }
+
+        smallIndex.next = largeNode.next;
+        largeIndex.next = null;
+
+        return smallNode.next;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(']' - '0');
+        //a 49, [ 43, ] 45
+    }
+
+    public String decodeString(String s) {
+        if (s == null || s.isEmpty()) return "";
+
+        Stack<Integer> numStack = new Stack<>();
+        Stack<StringBuilder> strStack = new Stack<>();
+
+        StringBuilder curStr = new StringBuilder();
+        int num = 0;
+        for (char c : s.toCharArray()) {
+            if (Character.isDigit(c)) {
+                num = num * 10 + c - '0';
+            } else if (c == '[') {
+                numStack.add(num);
+                strStack.add(curStr);
+                num = 0;
+                curStr = new StringBuilder();
+            } else if (c == ']') {
+                StringBuilder tmp = strStack.pop();
+                int repeat = numStack.pop();
+                for (int i = 0; i < repeat; i++) {
+                    tmp.append(curStr);
+                }
+                curStr = tmp;
+            } else {
+                curStr.append(c);
+            }
+        }
+        return curStr.toString();
+    }
+
+    public boolean isAnagram(String s, String t) {
+        if (s == null || t == null || s.length() != t.length()) return false;
+
+        HashMap<Character, Integer> map = new HashMap<>();
+        for (int i = 0; i < s.length(); i++) {
+            char key = s.charAt(i);
+            char key1 = t.charAt(i);
+            if (Objects.equals(key, key1)) continue;
+            map.put(key, map.getOrDefault(key, 0) + 1);
+            map.put(key1, map.getOrDefault(key1, 0) - 1);
+        }
+        for (Map.Entry<Character, Integer> entry : map.entrySet()) {
+            if (entry.getValue() != 0) return false;
+        }
+        return true;
+    }
+
+    public int firstUniqChar(String s) {
+        if (s == null || s.isEmpty()) return -1;
+        int[] chars = new int[26];
+        char[] charArray = s.toCharArray();
+        for (char c : charArray) {
+            chars[c - 'a']++;
+        }
+
+        for (int i = 0; i < s.length(); i++) {
+            if (chars[s.charAt(i) - 'a'] == 1) return i;
+        }
+        return -1;
+    }
+
+    public boolean isIsomorphic(String s, String t) {
+        if (s == null || t == null || s.length() != t.length()) return false;
+
+        HashMap<Character, Character> map = new HashMap<>();
+        int length = s.length();
+        char sC, tC;
+        for (int i = 0; i < length; i++) {
+            sC = s.charAt(i);
+            tC = t.charAt(i);
+            if (map.containsKey(sC)) {
+                if (!map.get(sC).equals(tC)) return false;
+            } else if (map.containsValue(tC)) return false;
+            else map.put(sC, tC);
+        }
+        return true;
     }
 }

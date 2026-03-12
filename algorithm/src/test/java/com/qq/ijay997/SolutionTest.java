@@ -404,4 +404,168 @@ class SolutionTest {
         int[] height = {1, 8, 6, 2, 5, 4, 8, 3, 7};
         System.out.println(solution.maxArea(height));
     }
+
+    @Test
+    void threeSum() {
+        int[] nums = {-1, 0, 1, 2, -1, -4};
+        System.out.println(solution.threeSum(nums));
+    }
+
+    @Test
+    void lengthOfLongestSubstring1() {
+        String s = "aab";
+        System.out.println(solution.lengthOfLongestSubstring1(s));
+    }
+
+    @Test
+    void trap() {
+        int[] height = {0, 1, 0, 2, 1, 0, 1, 3, 2, 1, 2, 1};
+        System.out.println(solution.trap(height));
+    }
+
+    @Test
+    void findAnagrams() {
+        // 测试用例1：基本情况
+        List<Integer> result = solution.findAnagrams1("baa", "aa");
+        System.out.println("测试1结果: " + result); // 预期: [0, 6]
+        List<Integer> result1 = solution.findAnagrams1("cbaebabacd", "abc");
+        System.out.println("测试1结果: " + result1); // 预期: [0, 6]
+
+        // 测试用例2：重复字符
+        List<Integer> result2 = solution.findAnagrams1("abab", "ab");
+        System.out.println("测试2结果: " + result2); // 预期: [0, 1, 2]
+
+        // 测试用例3：无匹配
+        List<Integer> result3 = solution.findAnagrams1("abc", "def");
+        System.out.println("测试3结果: " + result3); // 预期: []
+
+        // 测试用例4：边界情况
+        List<Integer> result4 = solution.findAnagrams1("a", "a");
+        System.out.println("测试4结果: " + result4); // 预期: [0]
+
+        // 测试用例5：s比p短
+        List<Integer> result5 = solution.findAnagrams1("ab", "abc");
+        System.out.println("测试5结果: " + result5); // 预期: []
+    }
+
+    @Test
+    void twoSum1() {
+        int[] nums = {3, 3};
+        int target = 6;
+        int[] result = solution.twoSum1(nums, target);
+    }
+
+    @Test
+    void testDemo(){
+    }
+
+    @Test
+    void hasCycle3() {
+        // 测试用例 1: 链表有环 (环在开头)
+        ListNode head1 = new ListNode(1);
+        head1.next = new ListNode(2);
+        head1.next.next = new ListNode(3);
+        head1.next.next.next = head1; // 形成环：3 -> 1
+        assertTrue(solution.hasCycle3(head1), "应该检测到环");
+
+        // 测试用例 2: 链表有环 (环在中间)
+        ListNode head2 = new ListNode(1);
+        head2.next = new ListNode(2);
+        head2.next.next = new ListNode(3);
+        head2.next.next.next = new ListNode(4);
+        head2.next.next.next.next = head2.next; // 形成环：4 -> 2
+        assertTrue(solution.hasCycle3(head2), "应该检测到环");
+
+        // 测试用例 3: 链表无环
+        ListNode head3 = new ListNode(1);
+        head3.next = new ListNode(2);
+        head3.next.next = new ListNode(3);
+        assertFalse(solution.hasCycle3(head3), "不应该检测到环");
+
+        // 测试用例 4: 空链表
+
+        // 测试用例 5: 只有一个节点且无环
+        ListNode head5 = new ListNode(1);
+        assertFalse(solution.hasCycle3(head5), "单节点无环应该返回 false");
+
+        // 测试用例 6: 只有一个节点且有环 (指向自己)
+        ListNode head6 = new ListNode(1);
+        head6.next = head6; // 形成自环
+        assertTrue(solution.hasCycle3(head6), "应该检测到自环");
+
+        // 测试用例 7: 两个节点，第二个指向第一个形成环
+        ListNode head7 = new ListNode(1);
+        head7.next = new ListNode(2);
+        head7.next.next = head7; // 形成环：2 -> 1
+        assertTrue(solution.hasCycle3(head7), "应该检测到环");
+
+        // 测试用例 8: 长链无环
+        ListNode head8 = new ListNode(1);
+        ListNode current = head8;
+        for (int i = 2; i <= 10; i++) {
+            current.next = new ListNode(i);
+            current = current.next;
+        }
+        assertFalse(solution.hasCycle3(head8), "长链表无环应该返回 false");
+    }
+
+    @Test
+    void removeNthFromEnd1() {
+        int[] nums = {1, 2, 3, 4, 5};
+        int n = 2;
+        ListNode head = createLinkedList(nums);
+        ListNode newHead = solution.removeNthFromEnd1(head, n);
+    }
+
+    @Test
+    public void testMaxDepth1_ComplexTree() {
+        //           1
+        //         /   \
+        //       2    2
+        //       / \   / \
+        //      3   4 4   3
+        //     /          /
+        //   5        5
+        TreeNode root = new TreeNode(1);
+        root.left = new TreeNode(2);
+        root.right = new TreeNode(2);
+        root.left.left = new TreeNode(3);
+        root.left.right = new TreeNode(4);
+        root.right.left = new TreeNode(4);
+        root.right.right = new TreeNode(3);
+        root.left.left.left = new TreeNode(5);
+        root.right.left.left = new TreeNode(5);
+
+        assertEquals(4, solution.maxDepth1(root));
+    }
+
+    @Test
+    void isValid() {
+        String s = "([}}])";
+        assertTrue(solution.isValid(s));
+    }
+
+    @Test
+    void decodeString() {
+        String s = "3[a]2[bc]";
+        System.out.println(solution.decodeString(s));
+    }
+
+    @Test
+    void isAnagram() {
+        String s = "anagram", t = "nagaram";
+        assertTrue(solution.isAnagram(s, t));
+    }
+
+    @Test
+    void firstUniqChar() {
+        String s = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        assertEquals(-1, solution.firstUniqChar(s));
+    }
+
+    @Test
+    void isIsomorphic() {
+        String s = "bbbaaaba", t = "aaabbbba";
+        assertTrue(solution.isIsomorphic(s, t));
+    }
 }
