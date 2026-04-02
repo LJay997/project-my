@@ -1,5 +1,6 @@
 package com.qq.ijay997;
 
+import com.sun.jmx.remote.internal.ArrayQueue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -403,5 +404,656 @@ class SolutionTest {
     void maxArea() {
         int[] height = {1, 8, 6, 2, 5, 4, 8, 3, 7};
         System.out.println(solution.maxArea(height));
+    }
+
+    @Test
+    void isSubsequence() {
+        String s = "abc";
+        String t = "ahbgdc";
+        System.out.println(solution.isSubsequence(s, t));
+    }
+
+    @Test
+    void middleNode() {
+        ListNode linkedList = createLinkedList(new int[]{1, 2, 3, 4, 5, 6});
+        ListNode middleNode = solution.middleNode(linkedList);
+        System.out.println("Middle node value: " + middleNode.val);
+    }
+
+    @Test
+    void rotateString() {
+        System.out.println(solution.rotateString("abcde", "cdeab"));
+        System.out.println(solution.rotateString("abcde", "abced"));
+    }
+
+    @Test
+    void rotateString3() {
+        ArrayQueue<Character> objects = new ArrayQueue<>(4);
+        objects.add('a');
+        objects.add('b');
+        objects.add('c');
+        objects.add('d');
+        System.out.println(objects.toArray().toString());
+
+        System.out.println(solution.rotateString3("abcde", "cdeab"));
+    }
+
+    @Test
+    void validateStackSequences() {
+        int[] pushed = {1, 2, 3, 4, 5};
+        int[] popped = {4, 5, 3, 2, 1};
+        System.out.println(solution.validateStackSequences(pushed, popped));
+    }
+
+    @Test
+    void climbStairs() {
+        // 测试用例 1: n = 0，有 1 种方法（不跳）
+        assertEquals(1, solution.climbStairs(0), "n=0 时应该有 1 种方法");
+
+        // 测试用例 2: n = 1，只有 1 种方法（跳 1 级）
+        assertEquals(1, solution.climbStairs(1), "n=1 时应该有 1 种方法");
+
+        // 测试用例 3: n = 2，有 2 种方法（1+1 或 2）
+        assertEquals(2, solution.climbStairs(2), "n=2 时应该有 2 种方法");
+
+        // 测试用例 4: n = 3，有 3 种方法（1+1+1、1+2、2+1）
+        assertEquals(3, solution.climbStairs(3), "n=3 时应该有 3 种方法");
+
+        // 测试用例 5: n = 4，有 5 种方法
+        assertEquals(5, solution.climbStairs(4), "n=4 时应该有 5 种方法");
+
+        // 测试用例 6: n = 5，有 8 种方法
+        assertEquals(8, solution.climbStairs(5), "n=5 时应该有 8 种方法");
+
+        // 测试用例 7: n = 10，验证斐波那契数列
+        assertEquals(89, solution.climbStairs(10), "n=10 时应该有 89 种方法");
+
+        // 测试用例 8: 打印结果便于观察
+        System.out.println("n=6 时的跳法数：" + solution.climbStairs(6));
+        System.out.println("n=7 时的跳法数：" + solution.climbStairs(7));
+        System.out.println("n=8 时的跳法数：" + solution.climbStairs(8));
+    }
+
+    @Test
+    void canPermutePalindrome() {
+        // 测试用例 1: 基本 false 情况
+        assertFalse(solution.canPermutePalindrome("code"), "'code' 无法排列成回文");
+
+        // 测试用例 2: 基本 true 情况
+        assertTrue(solution.canPermutePalindrome("carerac"), "'carerac' 可以排列成回文");
+
+        // 测试用例 3: 所有字符都出现偶数次
+        assertTrue(solution.canPermutePalindrome("aabbccdd"), "'aabbccdd' 可以排列成回文");
+
+        // 测试用例 4: 有一个字符出现奇数次
+        assertTrue(solution.canPermutePalindrome("aab"), "'aab' 可以排列成回文 'aba'");
+
+        // 测试用例 5: 单个字符
+        assertTrue(solution.canPermutePalindrome("a"), "单个字符可以形成回文");
+
+        // 测试用例 6: 空字符串
+        assertFalse(solution.canPermutePalindrome(""), "空字符串不能形成回文");
+
+        // 测试用例 7: null 值
+        assertFalse(solution.canPermutePalindrome(null), "null 不能形成回文");
+
+        // 测试用例 8: 多个不同字符出现奇数次
+        assertFalse(solution.canPermutePalindrome("aabbcccddd"), "'aabbcccddd' 有多个奇数字符，无法形成回文");
+
+        // 测试用例 9: 经典回文串
+        assertTrue(solution.canPermutePalindrome("racecar"), "'racecar' 本身就是回文");
+
+        // 测试用例 10: 两个相同字符
+        assertTrue(solution.canPermutePalindrome("aa"), "'aa' 可以形成回文");
+
+        // 测试用例 11: 复杂情况 - 偶数长度但有多个奇数字符
+        assertFalse(solution.canPermutePalindrome("codeco"), "'codeco' 有 2 个奇数字符 (d,e)，无法形成回文");
+
+        // 测试用例 12: 正确的复杂情况
+        assertTrue(solution.canPermutePalindrome("carrac"), "'carrac' 可以形成回文");
+
+        // 打印测试结果
+        System.out.println("canPermutePalindrome 测试完成");
+    }
+
+    @Test
+    void search() {
+        int[] nums = {-1, 0, 3, 5, 9, 12};
+        System.out.println(solution.search(nums, 9));
+    }
+
+    /**
+     * 测试第一个错误版本
+     * 注意：需要重写 isBadVersion 方法来模拟实际场景
+     */
+    @Test
+    void firstBadVersion() {
+//        // 测试用例 1: 第一个版本就是错误版本
+//        Solution solution1 = new Solution() {
+//            @Override
+//            public boolean isBadVersion(int version) {
+//                return version >= 4;
+//            }
+//        };
+//        assertEquals(4, solution1.firstBadVersion(5), "第一个版本就应该是错误版本");
+//
+//        // 测试用例 2: 中间版本是第一个错误版本
+//        Solution solution2 = new Solution() {
+//            @Override
+//            public boolean isBadVersion(int version) {
+//                return version >= 4;
+//            }
+//        };
+//        assertEquals(4, solution2.firstBadVersion(5), "第 4 个版本应该是第一个错误版本");
+//
+//        // 测试用例 3: 最后一个版本是第一个错误版本
+//        Solution solution3 = new Solution() {
+//            @Override
+//            public boolean isBadVersion(int version) {
+//                return version >= 10;
+//            }
+//        };
+//        assertEquals(10, solution3.firstBadVersion(10), "最后一个版本应该是第一个错误版本");
+//
+//        // 测试用例 4: 只有一个版本且是错误版本
+//        Solution solution4 = new Solution() {
+//            @Override
+//            public boolean isBadVersion(int version) {
+//                return version >= 1;
+//            }
+//        };
+//        assertEquals(1, solution4.firstBadVersion(1), "唯一版本应该是错误版本");
+//
+//        // 测试用例 5: n <= 0 的情况
+//        Solution solution5 = new Solution() {
+//            @Override
+//            public boolean isBadVersion(int version) {
+//                return version >= 1;
+//            }
+//        };
+//        assertEquals(-1, solution5.firstBadVersion(0), "n=0 应该返回 -1");
+//        assertEquals(-1, solution5.firstBadVersion(-1), "n<0 应该返回 -1");
+
+        // 测试用例 6: 大数测试（防止整数溢出）
+        Solution solution6 = new Solution() {
+            @Override
+            public boolean isBadVersion(int version) {
+                return version >= 1702766719;
+            }
+        };
+        assertEquals(1702766719, solution6.firstBadVersion(2126753390),
+                "大数情况下应正确找到第一个错误版本");
+
+        System.out.println("firstBadVersion 测试完成");
+    }
+
+    @Test
+    void selectSort() {
+        int[] arr = {5, 3, 8, 4, 2};
+        solution.sort2(arr);
+        System.out.println(Arrays.toString(arr));
+    }
+
+    @Test
+    void quickSort() {
+        int[] arr = {5, 3, 8, 77, 2, 42, 46};
+        solution.quickSort(arr);
+        System.out.println(Arrays.toString(arr));
+    }
+
+    @Test
+    void preOrder() {
+        // 测试用例 1: 空树
+        System.out.println("测试用例 1: 空树");
+        solution.preOrder(null);
+
+        // 测试用例 2: 单节点树
+        System.out.println("\n测试用例 2: 单节点树");
+        TreeNode root2 = new TreeNode(1);
+        solution.preOrder(root2);
+
+        // 测试用例 3: 只有左子树
+        System.out.println("\n测试用例 3: 只有左子树");
+        TreeNode root3 = new TreeNode(1);
+        root3.left = new TreeNode(2);
+        root3.left.left = new TreeNode(3);
+        solution.preOrder(root3);
+
+        // 测试用例 4: 只有右子树
+        System.out.println("\n测试用例 4: 只有右子树");
+        TreeNode root4 = new TreeNode(1);
+        root4.right = new TreeNode(2);
+        root4.right.right = new TreeNode(3);
+        solution.preOrder(root4);
+
+        // 测试用例 5: 完整的二叉树
+        System.out.println("\n测试用例 5: 完整的二叉树");
+        TreeNode root5 = new TreeNode(1);
+        root5.left = new TreeNode(2);
+        root5.right = new TreeNode(3);
+        root5.left.left = new TreeNode(4);
+        root5.left.right = new TreeNode(5);
+        root5.right.left = new TreeNode(6);
+        root5.right.right = new TreeNode(7);
+        solution.preOrder(root5);
+
+        // 测试用例 6: 复杂的非对称树
+        System.out.println("\n测试用例 6: 复杂的非对称树");
+        TreeNode root6 = new TreeNode(5);
+        root6.left = new TreeNode(3);
+        root6.right = new TreeNode(8);
+        root6.left.left = new TreeNode(1);
+        root6.left.right = new TreeNode(4);
+        root6.right.right = new TreeNode(10);
+        root6.right.right.left = new TreeNode(9);
+        root6.right.right.right = new TreeNode(11);
+        solution.preOrder(root6);
+
+        System.out.println("\npreOrder 测试完成");
+    }
+
+    @Test
+    void testIsPerfectBinaryTree_ValidTrees() {
+        PerfectBinaryTreeFromArray tree = new PerfectBinaryTreeFromArray();
+        // 测试用例 11: 验证完美二叉树
+        System.out.println("\n测试用例 11: 验证完美二叉树");
+
+        // 单节点
+        TreeNode single = new TreeNode(1);
+        assertTrue(tree.isPerfectBinaryTree(single), "单节点应该是完美二叉树");
+
+        // 3 个节点
+        TreeNode threeNodes = tree.buildPerfectBinaryTree(new int[]{1, 2, 3});
+        assertTrue(tree.isPerfectBinaryTree(threeNodes), "3 个节点的树应该是完美二叉树");
+
+        // 7 个节点
+        TreeNode sevenNodes = tree.buildPerfectBinaryTree(new int[]{1, 2, 3, 4, 5, 6, 7});
+        assertTrue(tree.isPerfectBinaryTree(sevenNodes), "7 个节点的树应该是完美二叉树");
+
+        // 15 个节点
+        TreeNode fifteenNodes = tree.buildPerfectBinaryTree(new int[15]);
+        assertTrue(tree.isPerfectBinaryTree(fifteenNodes), "15 个节点的树应该是完美二叉树");
+    }
+
+    @Test
+    void testInsert() {
+        System.out.println("\n=== insert 方法测试 ===");
+
+        // 测试用例 1: 向空树插入（注意：由于方法是 void 且参数传递问题，这个测试主要用于演示）
+        System.out.println("\n测试用例 1: 向空树插入单个节点");
+        TreeNode root1 = null;
+        solution.insert(5, root1);
+        System.out.println("向空树插入 5 (注意：Java 值传递，实际不会改变 root1)");
+
+        // 测试用例 2: 构建二叉搜索树并验证
+        System.out.println("\n测试用例 2: 构建二叉搜索树");
+        TreeNode root2 = new TreeNode(5,
+                new TreeNode(3, new TreeNode(2), new TreeNode(4)),
+                new TreeNode(7, new TreeNode(6), null));
+
+//        solution.insert(3, root2);
+//        solution.insert(7, root2);
+//        solution.insert(2, root2);
+//        solution.insert(4, root2);
+//        solution.insert(6, root2);
+        solution.insert(8, root2);
+
+        // 验证树的结构
+        assertEquals(5, root2.val, "根节点应为 5");
+        assertEquals(3, root2.left.val, "左子节点应为 3");
+        assertEquals(7, root2.right.val, "右子节点应为 7");
+        assertEquals(2, root2.left.left.val, "左左子节点应为 2");
+        assertEquals(4, root2.left.right.val, "左右子节点应为 4");
+        assertEquals(6, root2.right.left.val, "右左子节点应为 6");
+        assertEquals(8, root2.right.right.val, "右右子节点应为 8");
+
+        System.out.println("构建的二叉搜索树:");
+        System.out.println("       5");
+        System.out.println("      / \\");
+        System.out.println("     3   7");
+        System.out.println("    / \\ / \\");
+        System.out.println("   2  4 6  8");
+
+        // 测试用例 3: 插入重复值
+        System.out.println("\n测试用例 3: 插入重复值");
+        int originalLeftVal = root2.left.val;
+        solution.insert(3, root2); // 插入已存在的值
+        assertEquals(originalLeftVal, root2.left.val, "插入重复值不应改变树结构");
+        System.out.println("插入重复值 3，树结构未改变");
+
+        // 测试用例 4: 插入递增序列
+        System.out.println("\n测试用例 4: 插入递增序列");
+        TreeNode root4 = new TreeNode(1);
+        solution.insert(2, root4);
+        solution.insert(3, root4);
+        solution.insert(4, root4);
+
+        assertEquals(1, root4.val);
+        assertEquals(2, root4.right.val);
+        assertEquals(3, root4.right.right.val);
+        assertEquals(4, root4.right.right.right.val);
+        assertNull(root4.left, "递增序列应全部在右子树");
+        System.out.println("递增序列形成右斜树：1->2->3->4");
+
+        // 测试用例 5: 插入递减序列
+        System.out.println("\n测试用例 5: 插入递减序列");
+        TreeNode root5 = new TreeNode(5);
+        solution.insert(4, root5);
+        solution.insert(3, root5);
+        solution.insert(2, root5);
+
+        assertEquals(5, root5.val);
+        assertEquals(4, root5.left.val);
+        assertEquals(3, root5.left.left.val);
+        assertEquals(2, root5.left.left.left.val);
+        assertNull(root5.right, "递减序列应全部在左子树");
+        System.out.println("递减序列形成左斜树：5->4->3->2");
+
+        // 测试用例 6: 混合插入
+        System.out.println("\n测试用例 6: 混合正负数");
+        TreeNode root6 = new TreeNode(0);
+        solution.insert(-5, root6);
+        solution.insert(5, root6);
+        solution.insert(-2, root6);
+        solution.insert(2, root6);
+
+        assertEquals(0, root6.val);
+        assertEquals(-5, root6.left.val);
+        assertEquals(5, root6.right.val);
+        assertEquals(-2, root6.left.right.val);
+        assertEquals(2, root6.right.left.val);
+        System.out.println("混合正负数插入成功");
+
+        System.out.println("\n=== insert 方法测试完成 ===");
+    }
+
+    /**
+     * binarySearchLeftEdge 方法测试 - 二分查找最左边的 target
+     */
+    @Test
+    void testBinarySearchLeftEdge_Basic() {
+        System.out.println("\n=== 测试用例 1: 基本查找 ===");
+        int[] nums1 = {1, 2, 3, 4, 5};
+
+        // 查找存在的元素
+        assertEquals(2, solution.binarySearchLeftEdge(nums1, 3), "应该找到索引 2");
+        assertEquals(0, solution.binarySearchLeftEdge(nums1, 1), "应该找到索引 0");
+        assertEquals(4, solution.binarySearchLeftEdge(nums1, 5), "应该找到索引 4");
+
+        // 查找不存在的元素
+        assertEquals(-1, solution.binarySearchLeftEdge(nums1, 6), "不存在的元素应返回 -1");
+        assertEquals(-1, solution.binarySearchLeftEdge(nums1, 0), "不存在的元素应返回 -1");
+
+        System.out.println("基本查找测试通过");
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_Duplicates() {
+        System.out.println("\n=== 测试用例 2: 重复元素（查找最左边）===");
+        int[] nums2 = {1, 2, 2, 2, 3, 4, 5};
+
+        // 查找有重复的元素，应该返回最左边的索引
+        assertEquals(1, solution.binarySearchLeftEdge(nums2, 2), "应该返回最左边的索引 1");
+
+        // 查找唯一元素
+//        assertEquals(0, solution.binarySearchLeftEdge(nums2, 1), "应该找到索引 0");
+        assertEquals(4, solution.binarySearchLeftEdge(nums2, 3), "应该找到索引 4");
+        assertEquals(6, solution.binarySearchLeftEdge(nums2, 5), "应该找到索引 6");
+
+        System.out.println("重复元素查找测试通过");
+        System.out.println("数组：[1, 2, 2, 2, 3, 4, 5]");
+        System.out.println("查找 2，返回索引：" + solution.binarySearchLeftEdge(nums2, 2));
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_AllSame() {
+        System.out.println("\n=== 测试用例 3: 所有元素相同 ===");
+        int[] nums3 = {5, 5, 5, 5, 5};
+
+        // 查找唯一的值，应该返回最左边的索引 0
+        assertEquals(0, solution.binarySearchLeftEdge(nums3, 5), "应该返回最左边的索引 0");
+        assertEquals(-1, solution.binarySearchLeftEdge(nums3, 3), "不存在的元素应返回 -1");
+
+        System.out.println("全相同元素查找测试通过");
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_SingleElement() {
+        System.out.println("\n=== 测试用例 4: 单元素数组 ===");
+        int[] nums4 = {1};
+
+        assertEquals(0, solution.binarySearchLeftEdge(nums4, 1), "应该找到索引 0");
+        assertEquals(-1, solution.binarySearchLeftEdge(nums4, 2), "不存在的元素应返回 -1");
+
+        System.out.println("单元素查找测试通过");
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_TwoElements() {
+        System.out.println("\n=== 测试用例 5: 双元素数组 ===");
+        int[] nums5 = {1, 3};
+
+        assertEquals(0, solution.binarySearchLeftEdge(nums5, 1), "应该找到索引 0");
+        assertEquals(1, solution.binarySearchLeftEdge(nums5, 3), "应该找到索引 1");
+        assertEquals(-1, solution.binarySearchLeftEdge(nums5, 2), "不存在的元素应返回 -1");
+
+        System.out.println("双元素查找测试通过");
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_EmptyAndNull() {
+        System.out.println("\n=== 测试用例 6: 空数组和 null ===");
+
+        // 空数组
+        int[] emptyNums = {};
+        assertEquals(-1, solution.binarySearchLeftEdge(emptyNums, 1), "空数组应返回 -1");
+
+        // null 数组
+        assertEquals(-1, solution.binarySearchLeftEdge(null, 1), "null 数组应返回 -1");
+
+        System.out.println("空数组和 null 测试通过");
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_NegativeNumbers() {
+        System.out.println("\n=== 测试用例 7: 包含负数 ===");
+        int[] nums7 = {-5, -3, -1, 0, 2, 4};
+
+        assertEquals(0, solution.binarySearchLeftEdge(nums7, -5), "应该找到索引 0");
+        assertEquals(2, solution.binarySearchLeftEdge(nums7, -1), "应该找到索引 2");
+        assertEquals(3, solution.binarySearchLeftEdge(nums7, 0), "应该找到索引 3");
+        assertEquals(-1, solution.binarySearchLeftEdge(nums7, -2), "不存在的元素应返回 -1");
+
+        System.out.println("负数查找测试通过");
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_LargeArray() {
+        System.out.println("\n=== 测试用例 8: 较大数组 ===");
+        int[] nums8 = new int[100];
+        for (int i = 0; i < 100; i++) {
+            nums8[i] = i;
+        }
+
+        // 查找第一个元素
+        assertEquals(0, solution.binarySearchLeftEdge(nums8, 0), "应该找到索引 0");
+        // 查找中间元素
+        assertEquals(50, solution.binarySearchLeftEdge(nums8, 50), "应该找到索引 50");
+        // 查找最后一个元素
+        assertEquals(99, solution.binarySearchLeftEdge(nums8, 99), "应该找到索引 99");
+        // 查找不存在的元素
+        assertEquals(-1, solution.binarySearchLeftEdge(nums8, 100), "不存在的元素应返回 -1");
+
+        System.out.println("大数组查找测试通过");
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_MultipleDuplicates() {
+        System.out.println("\n=== 测试用例 9: 多个重复元素组 ===");
+        int[] nums9 = {1, 1, 1, 2, 2, 3, 3, 3, 3, 4, 5, 5, 5};
+
+        // 查找不同组的重复元素
+        assertEquals(0, solution.binarySearchLeftEdge(nums9, 1), "应该返回 1 的最左索引 0");
+        assertEquals(3, solution.binarySearchLeftEdge(nums9, 2), "应该返回 2 的最左索引 3");
+        assertEquals(5, solution.binarySearchLeftEdge(nums9, 3), "应该返回 3 的最左索引 5");
+        assertEquals(9, solution.binarySearchLeftEdge(nums9, 4), "应该返回 4 的索引 9");
+        assertEquals(10, solution.binarySearchLeftEdge(nums9, 5), "应该返回 5 的最左索引 10");
+
+        System.out.println("多组重复元素查找测试通过");
+        System.out.println("数组：[1,1,1,2,2,3,3,3,3,4,5,5,5]");
+        System.out.println("查找 3，返回索引：" + solution.binarySearchLeftEdge(nums9, 3));
+    }
+
+    @Test
+    void testBinarySearchLeftEdge_EdgeCases() {
+        System.out.println("\n=== 测试用例 10: 边界情况 ===");
+
+        // 只查找比所有元素都小的值
+        int[] nums10 = {10, 20, 30};
+        assertEquals(-1, solution.binarySearchLeftEdge(nums10, 5), "小于所有元素应返回 -1");
+
+        // 只查找比所有元素都大的值
+        assertEquals(-1, solution.binarySearchLeftEdge(nums10, 50), "大于所有元素应返回 -1");
+
+        // 查找两个元素之间的值
+        assertEquals(-1, solution.binarySearchLeftEdge(nums10, 15), "不存在的元素应返回 -1");
+
+        System.out.println("边界情况测试通过");
+    }
+
+    @Test
+    void twoSumBruteForce() {
+        int[] ints = {2, 7, 11, 15};
+        int[] ints1 = solution.twoSumBruteForce(ints, 9);
+    }
+
+    @Test
+    void twoSumHashTable() {
+        int[] ints = {2, 7, 11, 15};
+        int[] ints1 = solution.twoSumHashTable(ints, 9);
+        System.out.println(ints1[0] + " " + ints1[1]);
+    }
+
+    @Test
+    void selectionSort() {
+        int[] ints = {5, 2, 4, 6, 1, 3};
+        solution.selectionSort(ints);
+        System.out.println(ints);
+    }
+
+    @Test
+    void bubbleSort() {
+        int[] ints = {5, 1, 2, 3, 4};
+        solution.bubbleSort(ints);
+        System.out.println(ints);
+    }
+
+    @Test
+    void quickSort2() {
+        int[] ints = {5, 1, 2, 3, 4};
+        solution.quickSort2(ints);
+        System.out.println(ints);
+    }
+
+    @Test
+    void test(){
+        int f1 =129;
+        Integer f2 =129;
+        double f3 =1d;
+        Double f4 =1d;
+        Float f5 =1f;
+        long f6 = 1L;
+
+        System.out.println(f1==f2);
+        System.out.println(f1==f3);
+        System.out.println(f1==f4);
+        System.out.println(f1==f5);
+        System.out.println(f1==f6);
+    }
+
+    /**
+     * buildTree 方法测试 - 根据前序和中序遍历构建二叉树
+     */
+    @Test
+    void testBuildTree_Basic() {
+        System.out.println("\n=== 测试用例 1: buildTree 基本测试 ===");
+
+        // 构建测试数据
+        //     3
+        //    / \
+        //   9  20
+        //      / \
+        //     15  7
+        int[] preorder1 = {3, 9, 20, 15, 7};
+        int[] inorder1 = {9, 3, 15, 20, 7};
+
+        TreeNode root1 = solution.buildTree1(preorder1, inorder1);
+
+        assertNotNull(root1, "根节点不应为 null");
+        assertEquals(3, root1.val, "根节点值应为 3");
+        assertEquals(9, root1.left.val, "左子节点值应为 9");
+        assertEquals(20, root1.right.val, "右子节点值应为 20");
+        assertEquals(15, root1.right.left.val, "右左子节点值应为 15");
+        assertEquals(7, root1.right.right.val, "右右子节点值应为 7");
+
+        System.out.println("构建的二叉树:");
+        System.out.println("    3");
+        System.out.println("   / \\");
+        System.out.println("  9  20");
+        System.out.println("     / \\");
+        System.out.println("    15  7");
+
+        int[] preorder2 = {1, 2, 4, 5, 3};
+        int[] inorder2 = {4, 2, 5, 1, 3};
+
+        TreeNode root2 = solution.buildTree(preorder2, inorder2);
+        System.out.println(1);
+    }
+
+    @Test
+    void testBuildTree1() {
+        int[] preorder1 = {3,9,20,15,7};
+        int[] inorder1 = {9,3,15,20,7};
+
+        TreeNode root1 = solution.buildTree1(preorder1, inorder1);
+        System.out.println(1);
+    }
+
+    /**
+     * findPathToTarget 方法测试 - 在二叉树中搜索所有值为 target 的节点，返回路径
+     */
+    @Test
+    void testFindPathToTarget_Basic() {
+        System.out.println("\n=== 测试用例 1: 基本查找 ===");
+
+        // 构建测试二叉树:
+        //       1
+        //      / \
+        //     2   3
+        //    / \   \
+        //   4   2   5
+        TreeNode root = new TreeNode(1);
+        root.left = new TreeNode(2);
+        root.right = new TreeNode(3);
+        root.left.left = new TreeNode(4);
+        root.left.right = new TreeNode(2);
+        root.right.right = new TreeNode(5);
+
+        List<List<Integer>> paths = solution.findPathToTarget(root, 2);
+
+        System.out.println("查找目标值: 2");
+        System.out.println("找到的路径数: " + paths.size());
+        for (List<Integer> path : paths) {
+            System.out.println(path);
+        }
+
+        assertEquals(2, paths.size(), "应该找到 2 条路径");
+
+        // 验证路径内容
+        List<Integer> expectedPath1 = Arrays.asList(1, 2);
+        List<Integer> expectedPath2 = Arrays.asList(1, 2, 2);
+
+        assertTrue(paths.contains(expectedPath1), "应该包含路径 [1, 2]");
+        assertTrue(paths.contains(expectedPath2), "应该包含路径 [1, 2, 2]");
     }
 }

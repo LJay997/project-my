@@ -1,0 +1,35 @@
+DROP TABLE IF EXISTS student;
+DROP TABLE IF EXISTS class;
+CREATE TABLE student
+(
+    id       int(11) NOT NULL AUTO_INCREMENT COMMENT 'id',
+    name     varchar(255) DEFAULT NULL COMMENT '姓名',
+    age      int(11)      DEFAULT NULL COMMENT '年龄',
+    class_id int(11)      DEFAULT NULL COMMENT '班级id',
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE class
+(
+    class_id   int(11) NOT NULL AUTO_INCREMENT COMMENT '班级id',
+    class_name varchar(255) DEFAULT NULL COMMENT '班级名称',
+    PRIMARY KEY (class_id)
+);
+INSERT INTO student (name, age, class_id)
+VALUES ('张三', 18, 1),
+       ('李四', 19, 1),
+       ('王五', 20, 1),
+       ('老六', 21, 2),
+       ('冯七', 22, 2),
+       ('赵八', 20, 3);
+
+INSERT INTO class (class_name)
+VALUES ('1班'),
+       ('2班'),
+       ('3班');
+-- 1.问 现有学生表和班级表,如何查询每个班级级中年龄最大的学生信息和班级名称(同一班级下没有同龄的学生)
+SELECT name, age, class_name
+FROM student
+         LEFT JOIN class ON student.class_id = class.class_id
+         INNER JOIN (SELECT class_id, MAX(age) AS max_age FROM student GROUP BY class_id) t
+                    ON student.class_id = t.class_id AND student.age = t.max_age;
