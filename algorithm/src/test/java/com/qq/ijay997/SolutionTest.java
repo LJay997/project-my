@@ -4,6 +4,7 @@ import com.sun.jmx.remote.internal.ArrayQueue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -246,6 +247,453 @@ class SolutionTest {
         int[] num = {3, 2, 1, 5, 6, 4};
         int kthLargest = solution.findKthLargest(num, 2);
         System.out.println(kthLargest);
+    }
+
+    /**
+     * findKthLargest2 方法测试 - 使用最小堆找到数组中第k大的元素
+     */
+    @Test
+    void testFindKthLargest2_Basic() {
+        System.out.println("\n=== 测试用例 1: 基本功能测试 ===");
+
+        // 测试用例 1: 正常情况，找第2大的元素
+        int[] nums1 = {3, 2, 1, 5, 6, 4};
+        assertEquals(5, solution.findKthLargest2(nums1, 2), "第2大的元素应该是 5");
+
+        // 测试用例 2: 找第1大的元素（最大值）
+        assertEquals(6, solution.findKthLargest2(nums1, 1), "第1大的元素应该是 6");
+
+        // 测试用例 3: 找最后1大的元素（最小值）
+        assertEquals(1, solution.findKthLargest2(nums1, 6), "第6大的元素应该是 1");
+
+        // 测试用例 4: 找中间位置的元素
+        assertEquals(3, solution.findKthLargest2(nums1, 4), "第4大的元素应该是 3");
+
+        System.out.println("基本功能测试通过");
+    }
+
+    @Test
+    void testFindKthLargest2_Duplicates() {
+        System.out.println("\n=== 测试用例 2: 包含重复元素 ===");
+
+        // 测试用例 5: 所有元素相同
+        int[] nums2 = {5, 5, 5, 5, 5};
+        assertEquals(5, solution.findKthLargest2(nums2, 1), "所有元素相同时，第1大应该是 5");
+        assertEquals(5, solution.findKthLargest2(nums2, 3), "所有元素相同时，第3大应该是 5");
+        assertEquals(5, solution.findKthLargest2(nums2, 5), "所有元素相同时，第5大应该是 5");
+
+        // 测试用例 6: 部分元素重复
+        int[] nums3 = {3, 3, 3, 2, 2, 1};
+        assertEquals(3, solution.findKthLargest2(nums3, 1), "第1大的元素应该是 3");
+        assertEquals(3, solution.findKthLargest2(nums3, 2), "第2大的元素应该是 3");
+        assertEquals(3, solution.findKthLargest2(nums3, 3), "第3大的元素应该是 3");
+        assertEquals(2, solution.findKthLargest2(nums3, 4), "第4大的元素应该是 2");
+        assertEquals(2, solution.findKthLargest2(nums3, 5), "第5大的元素应该是 2");
+        assertEquals(1, solution.findKthLargest2(nums3, 6), "第6大的元素应该是 1");
+
+        System.out.println("重复元素测试通过");
+    }
+
+    @Test
+    void testFindKthLargest2_SingleElement() {
+        System.out.println("\n=== 测试用例 3: 单元素数组 ===");
+
+        // 测试用例 7: 只有一个元素
+        int[] nums4 = {1};
+        assertEquals(1, solution.findKthLargest2(nums4, 1), "单元素数组，第1大应该是 1");
+
+        System.out.println("单元素测试通过");
+    }
+
+    @Test
+    void testFindKthLargest2_TwoElements() {
+        System.out.println("\n=== 测试用例 4: 双元素数组 ===");
+
+        // 测试用例 8: 两个不同元素
+        int[] nums5 = {1, 2};
+        assertEquals(2, solution.findKthLargest2(nums5, 1), "第1大的元素应该是 2");
+        assertEquals(1, solution.findKthLargest2(nums5, 2), "第2大的元素应该是 1");
+
+        // 测试用例 9: 两个相同元素
+        int[] nums6 = {3, 3};
+        assertEquals(3, solution.findKthLargest2(nums6, 1), "第1大的元素应该是 3");
+        assertEquals(3, solution.findKthLargest2(nums6, 2), "第2大的元素应该是 3");
+
+        System.out.println("双元素测试通过");
+    }
+
+    @Test
+    void testFindKthLargest2_SortedArrays() {
+        System.out.println("\n=== 测试用例 5: 已排序数组 ===");
+
+        // 测试用例 10: 升序数组
+        int[] nums7 = {1, 2, 3, 4, 5};
+        assertEquals(5, solution.findKthLargest2(nums7, 1), "升序数组，第1大应该是 5");
+        assertEquals(3, solution.findKthLargest2(nums7, 3), "升序数组，第3大应该是 3");
+        assertEquals(1, solution.findKthLargest2(nums7, 5), "升序数组，第5大应该是 1");
+
+        // 测试用例 11: 降序数组
+        int[] nums8 = {5, 4, 3, 2, 1};
+        assertEquals(5, solution.findKthLargest2(nums8, 1), "降序数组，第1大应该是 5");
+        assertEquals(3, solution.findKthLargest2(nums8, 3), "降序数组，第3大应该是 3");
+        assertEquals(1, solution.findKthLargest2(nums8, 5), "降序数组，第5大应该是 1");
+
+        System.out.println("已排序数组测试通过");
+    }
+
+    @Test
+    void testFindKthLargest2_NegativeNumbers() {
+        System.out.println("\n=== 测试用例 6: 包含负数 ===");
+
+        // 测试用例 12: 全部负数
+        int[] nums9 = {-5, -3, -1, -4, -2};
+        assertEquals(-1, solution.findKthLargest2(nums9, 1), "第1大的元素应该是 -1");
+        assertEquals(-3, solution.findKthLargest2(nums9, 3), "第3大的元素应该是 -3");
+        assertEquals(-5, solution.findKthLargest2(nums9, 5), "第5大的元素应该是 -5");
+
+        // 测试用例 13: 正负数混合
+        int[] nums10 = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
+        assertEquals(4, solution.findKthLargest2(nums10, 1), "第1大的元素应该是 4");
+        assertEquals(4, solution.findKthLargest2(nums10, 2), "第2大的元素应该是 4");
+        assertEquals(2, solution.findKthLargest2(nums10, 3), "第3大的元素应该是 2");
+
+        System.out.println("负数测试通过");
+    }
+
+    @Test
+    void testFindKthLargest2_LargeArray() {
+        System.out.println("\n=== 测试用例 7: 较大数组 ===");
+
+        // 测试用例 14: 较大的数组
+        int[] nums11 = new int[100];
+        for (int i = 0; i < 100; i++) {
+            nums11[i] = i + 1;
+        }
+
+        assertEquals(100, solution.findKthLargest2(nums11, 1), "第1大的元素应该是 100");
+        assertEquals(50, solution.findKthLargest2(nums11, 51), "第51大的元素应该是 50");
+        assertEquals(1, solution.findKthLargest2(nums11, 100), "第100大的元素应该是 1");
+
+        System.out.println("大数组测试通过");
+    }
+
+    @Test
+    void testFindKthLargest2_EdgeCases() {
+        System.out.println("\n=== 测试用例 8: 边界情况 ===");
+
+        // 测试用例 15: k 等于数组长度
+        int[] nums12 = {7, 10, 4, 3, 20, 15};
+        assertEquals(3, solution.findKthLargest2(nums12, 6), "k=数组长度时，应返回最小值 3");
+
+        // 测试用例 16: k=1，找最大值
+        assertEquals(20, solution.findKthLargest2(nums12, 1), "k=1 时，应返回最大值 20");
+
+        // 测试用例 17: 经典 LeetCode 示例
+        int[] nums13 = {3, 2, 3, 1, 2, 4, 5, 5, 6};
+        assertEquals(4, solution.findKthLargest2(nums13, 4), "LeetCode 示例，第4大应该是 4");
+
+        System.out.println("边界情况测试通过");
+    }
+
+    /**
+     * printListFromTailToHead 方法测试 - 从尾到头打印链表
+     */
+    @Test
+    void testPrintListFromTailToHead_Basic() {
+        System.out.println("\n=== 测试用例 1: 基本功能测试 ===");
+
+        // 测试用例 1: 正常链表 [1, 2, 3]
+        ListNode head1 = createLinkedList(new int[]{1, 2, 3});
+        ArrayList<Integer> result1 = solution.printListFromTailToHead(head1);
+        assertEquals(Arrays.asList(3, 2, 1), result1, "应该返回 [3, 2, 1]");
+        System.out.println("链表 [1, 2, 3] 从尾到头: " + result1);
+
+        // 测试用例 2: 较长链表 [1, 2, 3, 4, 5]
+        ListNode head2 = createLinkedList(new int[]{1, 2, 3, 4, 5});
+        ArrayList<Integer> result2 = solution.printListFromTailToHead(head2);
+        assertEquals(Arrays.asList(5, 4, 3, 2, 1), result2, "应该返回 [5, 4, 3, 2, 1]");
+        System.out.println("链表 [1, 2, 3, 4, 5] 从尾到头: " + result2);
+
+        System.out.println("基本功能测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHead_EmptyAndSingle() {
+        System.out.println("\n=== 测试用例 2: 空链表和单节点 ===");
+
+        // 测试用例 3: 空链表
+        ListNode head3 = null;
+        ArrayList<Integer> result3 = solution.printListFromTailToHead(head3);
+        assertNotNull(result3, "结果不应为 null");
+        assertTrue(result3.isEmpty(), "空链表应返回空列表");
+        System.out.println("空链表从尾到头: " + result3);
+
+        // 测试用例 4: 单节点链表
+        ListNode head4 = new ListNode(1);
+        ArrayList<Integer> result4 = solution.printListFromTailToHead(head4);
+        assertEquals(Arrays.asList(1), result4, "单节点应返回 [1]");
+        System.out.println("单节点链表 [1] 从尾到头: " + result4);
+
+        System.out.println("空链表和单节点测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHead_TwoNodes() {
+        System.out.println("\n=== 测试用例 3: 双节点链表 ===");
+
+        // 测试用例 5: 两个不同值的节点
+        ListNode head5 = createLinkedList(new int[]{1, 2});
+        ArrayList<Integer> result5 = solution.printListFromTailToHead(head5);
+        assertEquals(Arrays.asList(2, 1), result5, "应该返回 [2, 1]");
+        System.out.println("链表 [1, 2] 从尾到头: " + result5);
+
+        // 测试用例 6: 两个相同值的节点
+        ListNode head6 = createLinkedList(new int[]{5, 5});
+        ArrayList<Integer> result6 = solution.printListFromTailToHead(head6);
+        assertEquals(Arrays.asList(5, 5), result6, "应该返回 [5, 5]");
+        System.out.println("链表 [5, 5] 从尾到头: " + result6);
+
+        System.out.println("双节点测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHead_Duplicates() {
+        System.out.println("\n=== 测试用例 4: 包含重复元素 ===");
+
+        // 测试用例 7: 所有元素相同
+        ListNode head7 = createLinkedList(new int[]{3, 3, 3, 3});
+        ArrayList<Integer> result7 = solution.printListFromTailToHead(head7);
+        assertEquals(Arrays.asList(3, 3, 3, 3), result7, "应该返回 [3, 3, 3, 3]");
+        System.out.println("链表 [3, 3, 3, 3] 从尾到头: " + result7);
+
+        // 测试用例 8: 部分元素重复
+        ListNode head8 = createLinkedList(new int[]{1, 2, 2, 3, 3, 3});
+        ArrayList<Integer> result8 = solution.printListFromTailToHead(head8);
+        assertEquals(Arrays.asList(3, 3, 3, 2, 2, 1), result8, "应该返回 [3, 3, 3, 2, 2, 1]");
+        System.out.println("链表 [1, 2, 2, 3, 3, 3] 从尾到头: " + result8);
+
+        System.out.println("重复元素测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHead_NegativeNumbers() {
+        System.out.println("\n=== 测试用例 5: 包含负数 ===");
+
+        // 测试用例 9: 全部负数
+        ListNode head9 = createLinkedList(new int[]{-3, -2, -1});
+        ArrayList<Integer> result9 = solution.printListFromTailToHead(head9);
+        assertEquals(Arrays.asList(-1, -2, -3), result9, "应该返回 [-1, -2, -3]");
+        System.out.println("链表 [-3, -2, -1] 从尾到头: " + result9);
+
+        // 测试用例 10: 正负数混合
+        ListNode head10 = createLinkedList(new int[]{-2, 0, 3, -1, 5});
+        ArrayList<Integer> result10 = solution.printListFromTailToHead(head10);
+        assertEquals(Arrays.asList(5, -1, 3, 0, -2), result10, "应该返回 [5, -1, 3, 0, -2]");
+        System.out.println("链表 [-2, 0, 3, -1, 5] 从尾到头: " + result10);
+
+        System.out.println("负数测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHead_SortedLists() {
+        System.out.println("\n=== 测试用例 6: 已排序链表 ===");
+
+        // 测试用例 11: 升序链表
+        ListNode head11 = createLinkedList(new int[]{1, 2, 3, 4, 5});
+        ArrayList<Integer> result11 = solution.printListFromTailToHead(head11);
+        assertEquals(Arrays.asList(5, 4, 3, 2, 1), result11, "升序链表反转后应为降序");
+        System.out.println("升序链表 [1, 2, 3, 4, 5] 从尾到头: " + result11);
+
+        // 测试用例 12: 降序链表
+        ListNode head12 = createLinkedList(new int[]{5, 4, 3, 2, 1});
+        ArrayList<Integer> result12 = solution.printListFromTailToHead(head12);
+        assertEquals(Arrays.asList(1, 2, 3, 4, 5), result12, "降序链表反转后应为升序");
+        System.out.println("降序链表 [5, 4, 3, 2, 1] 从尾到头: " + result12);
+
+        System.out.println("已排序链表测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHead_LargeList() {
+        System.out.println("\n=== 测试用例 7: 较大链表 ===");
+
+        // 测试用例 13: 较大的链表（100个节点）
+        int[] values = new int[100];
+        for (int i = 0; i < 100; i++) {
+            values[i] = i + 1;
+        }
+        ListNode head13 = createLinkedList(values);
+        ArrayList<Integer> result13 = solution.printListFromTailToHead(head13);
+
+        // 验证结果大小
+        assertEquals(100, result13.size(), "结果应该包含 100 个元素");
+        // 验证第一个元素（原链表最后一个）
+        assertEquals(100, result13.get(0), "第一个元素应该是 100");
+        // 验证最后一个元素（原链表第一个）
+        assertEquals(1, result13.get(99), "最后一个元素应该是 1");
+        // 验证中间元素
+        assertEquals(50, result13.get(50), "第51个元素应该是 50");
+
+        System.out.println("大链表测试通过，结果大小: " + result13.size());
+    }
+
+    @Test
+    void testPrintListFromTailToHead_EdgeCases() {
+        System.out.println("\n=== 测试用例 8: 边界情况 ===");
+
+        // 测试用例 14: 单个大数值
+        ListNode head14 = new ListNode(Integer.MAX_VALUE);
+        ArrayList<Integer> result14 = solution.printListFromTailToHead(head14);
+        assertEquals(Arrays.asList(Integer.MAX_VALUE), result14, "应正确处理最大值");
+        System.out.println("最大值节点: " + result14);
+
+        // 测试用例 15: 单个小数值
+        ListNode head15 = new ListNode(Integer.MIN_VALUE);
+        ArrayList<Integer> result15 = solution.printListFromTailToHead(head15);
+        assertEquals(Arrays.asList(Integer.MIN_VALUE), result15, "应正确处理最小值");
+        System.out.println("最小值节点: " + result15);
+
+        // 测试用例 16: 包含零值
+        ListNode head16 = createLinkedList(new int[]{0, 0, 0});
+        ArrayList<Integer> result16 = solution.printListFromTailToHead(head16);
+        assertEquals(Arrays.asList(0, 0, 0), result16, "应正确处理零值");
+        System.out.println("零值链表 [0, 0, 0] 从尾到头: " + result16);
+
+        // 测试用例 17: 交替正负数
+        ListNode head17 = createLinkedList(new int[]{-1, 2, -3, 4, -5});
+        ArrayList<Integer> result17 = solution.printListFromTailToHead(head17);
+        assertEquals(Arrays.asList(-5, 4, -3, 2, -1), result17, "应正确反转交替正负数链表");
+        System.out.println("交替正负数链表从尾到头: " + result17);
+
+        System.out.println("边界情况测试通过");
+    }
+
+    /**
+     * printListFromTailToHeadIterative 方法测试 - 使用头插法（迭代）从尾到头打印链表
+     */
+    @Test
+    void testPrintListFromTailToHeadIterative_Basic() {
+        System.out.println("\n=== 测试用例 1: 头插法基本功能测试 ===");
+
+        // 测试用例 1: 正常链表 [1, 2, 3]
+        ListNode head1 = createLinkedList(new int[]{1, 2, 3});
+        ArrayList<Integer> result1 = solution.printListFromTailToHeadIterative(head1);
+        assertEquals(Arrays.asList(3, 2, 1), result1, "应该返回 [3, 2, 1]");
+        System.out.println("链表 [1, 2, 3] 从尾到头（头插法）: " + result1);
+
+        // 测试用例 2: 较长链表 [1, 2, 3, 4, 5]
+        ListNode head2 = createLinkedList(new int[]{1, 2, 3, 4, 5});
+        ArrayList<Integer> result2 = solution.printListFromTailToHeadIterative(head2);
+        assertEquals(Arrays.asList(5, 4, 3, 2, 1), result2, "应该返回 [5, 4, 3, 2, 1]");
+        System.out.println("链表 [1, 2, 3, 4, 5] 从尾到头（头插法）: " + result2);
+
+        System.out.println("基本功能测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHeadIterative_EmptyAndSingle() {
+        System.out.println("\n=== 测试用例 2: 头插法空链表和单节点 ===");
+
+        // 测试用例 3: 空链表
+        ListNode head3 = null;
+        ArrayList<Integer> result3 = solution.printListFromTailToHeadIterative(head3);
+        assertNotNull(result3, "结果不应为 null");
+        assertTrue(result3.isEmpty(), "空链表应返回空列表");
+        System.out.println("空链表从尾到头（头插法）: " + result3);
+
+        // 测试用例 4: 单节点链表
+        ListNode head4 = new ListNode(1);
+        ArrayList<Integer> result4 = solution.printListFromTailToHeadIterative(head4);
+        assertEquals(Arrays.asList(1), result4, "单节点应返回 [1]");
+        System.out.println("单节点链表 [1] 从尾到头（头插法）: " + result4);
+
+        System.out.println("空链表和单节点测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHeadIterative_CompareWithRecursive() {
+        System.out.println("\n=== 测试用例 3: 对比递归和迭代方法 ===");
+
+        // 测试用例 5: 验证两种方法结果一致
+        int[][] testCases = {
+            {1, 2, 3},
+            {5, 4, 3, 2, 1},
+            {1},
+            {-1, 2, -3, 4},
+            {3, 3, 3},
+            {0, 0, 0, 0}
+        };
+
+        for (int i = 0; i < testCases.length; i++) {
+            ListNode head = createLinkedList(testCases[i]);
+            ArrayList<Integer> recursiveResult = solution.printListFromTailToHead(head);
+            ArrayList<Integer> iterativeResult = solution.printListFromTailToHeadIterative(head);
+            
+            assertEquals(recursiveResult, iterativeResult, 
+                "测试用例 " + (i + 1) + " 两种方法结果应一致");
+            System.out.println("测试用例 " + (i + 1) + ": " + Arrays.toString(testCases[i]) + 
+                             " -> " + iterativeResult);
+        }
+
+        System.out.println("递归与迭代方法对比测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHeadIterative_Duplicates() {
+        System.out.println("\n=== 测试用例 4: 头插法重复元素 ===");
+
+        // 测试用例 6: 所有元素相同
+        ListNode head6 = createLinkedList(new int[]{3, 3, 3, 3});
+        ArrayList<Integer> result6 = solution.printListFromTailToHeadIterative(head6);
+        assertEquals(Arrays.asList(3, 3, 3, 3), result6, "应该返回 [3, 3, 3, 3]");
+
+        // 测试用例 7: 部分元素重复
+        ListNode head7 = createLinkedList(new int[]{1, 2, 2, 3, 3, 3});
+        ArrayList<Integer> result7 = solution.printListFromTailToHeadIterative(head7);
+        assertEquals(Arrays.asList(3, 3, 3, 2, 2, 1), result7, "应该返回 [3, 3, 3, 2, 2, 1]");
+
+        System.out.println("重复元素测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHeadIterative_NegativeNumbers() {
+        System.out.println("\n=== 测试用例 5: 头插法负数测试 ===");
+
+        // 测试用例 8: 全部负数
+        ListNode head8 = createLinkedList(new int[]{-3, -2, -1});
+        ArrayList<Integer> result8 = solution.printListFromTailToHeadIterative(head8);
+        assertEquals(Arrays.asList(-1, -2, -3), result8, "应该返回 [-1, -2, -3]");
+
+        // 测试用例 9: 正负数混合
+        ListNode head9 = createLinkedList(new int[]{-2, 0, 3, -1, 5});
+        ArrayList<Integer> result9 = solution.printListFromTailToHeadIterative(head9);
+        assertEquals(Arrays.asList(5, -1, 3, 0, -2), result9, "应该返回 [5, -1, 3, 0, -2]");
+
+        System.out.println("负数测试通过");
+    }
+
+    @Test
+    void testPrintListFromTailToHeadIterative_LargeList() {
+        System.out.println("\n=== 测试用例 6: 头插法较大链表 ===");
+
+        // 测试用例 10: 较大的链表（100个节点）
+        int[] values = new int[100];
+        for (int i = 0; i < 100; i++) {
+            values[i] = i + 1;
+        }
+        ListNode head10 = createLinkedList(values);
+        ArrayList<Integer> result10 = solution.printListFromTailToHeadIterative(head10);
+
+        // 验证结果大小
+        assertEquals(100, result10.size(), "结果应该包含 100 个元素");
+        // 验证第一个元素（原链表最后一个）
+        assertEquals(100, result10.get(0), "第一个元素应该是 100");
+        // 验证最后一个元素（原链表第一个）
+        assertEquals(1, result10.get(99), "最后一个元素应该是 1");
+        // 验证中间元素
+        assertEquals(50, result10.get(50), "第51个元素应该是 50");
+
+        System.out.println("大链表测试通过，结果大小: " + result10.size());
     }
 
     @Test

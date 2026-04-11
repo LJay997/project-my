@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * 数据初始化器
  * 应用启动时自动插入演示数据
@@ -17,6 +20,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private BloomFilterConfig bloomFilterConfig;
 
     @Override
     public void run(String... args) throws Exception {
@@ -40,5 +46,21 @@ public class DataInitializer implements CommandLineRunner {
 
         System.out.println("演示数据初始化完成！共插入 5 条用户数据。");
         System.out.println("=================================");
+
+        /**
+         * 应用启动时初始化布隆过滤器
+         * 将所有已存在的用户ID添加到布隆过滤器中
+         */
+        try {
+            List<User> allUsers = userRepository.findAll();
+            List<Long> userIds = allUsers.stream()
+                    .map(User::getId)
+                    .collect(Collectors.toList());
+
+            bloomFilterConfig.addUsers(userIds);
+            System.out.println(String.format("布隆过滤器初始化完成，已添加 %d 个用户ID", userIds.size()));
+        } catch (Exception e) {
+            System.err.println("布隆过滤器初始化失败: " + e.getMessage());
+        }
     }
 }

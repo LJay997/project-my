@@ -1572,6 +1572,7 @@ public class Solution {
 
     /**
      * 路径总和 II
+     *
      * @param root
      * @param targetSum
      * @return
@@ -1580,11 +1581,60 @@ public class Solution {
         if (root == null) return null;
         List<List<Integer>> result = new ArrayList<>();
 
-        pathSumHelp(root,targetSum, result,new ArrayDeque<Integer>(),0);
+        pathSumHelp(root, targetSum, result, new ArrayDeque<Integer>(), 0);
         return result;
     }
 
     private void pathSumHelp(TreeNode node, int targetSum, List<List<Integer>> result, ArrayDeque<Integer> path, int curSum) {
         if (node == null) return;
+    }
+
+    public int findKthLargest2(int[] nums, int k) {
+        PriorityQueue<Integer> queue = new PriorityQueue<>(k);
+        for (int num : nums) {
+            if (queue.size() < k) {
+                queue.add(num);
+            } else if (queue.peek() < num) {
+                queue.poll();
+                queue.add(num);
+            }
+        }
+
+        return queue.peek();
+    }
+
+    public ArrayList<Integer> printListFromTailToHead(ListNode listNode) {
+        ArrayList<Integer> list = new ArrayList<>();
+        if (listNode == null) return list;
+
+        printListFromTailToHeadHelp(listNode, list);
+        return list;
+    }
+
+    private void printListFromTailToHeadHelp(ListNode listNode, ArrayList<Integer> list) {
+        if (listNode == null) return;
+        if (listNode.next != null)
+            printListFromTailToHeadHelp(listNode.next, list);
+
+        list.add(listNode.val);
+    }
+
+    /**
+     * 使用头插法（迭代）从尾到头打印链表
+     * 核心思想：遍历链表时，每次将元素插入到列表的开头（索引0位置）
+     * 时间复杂度：O(n²)，因为每次在头部插入需要移动所有元素
+     * 空间复杂度：O(1)，不需要额外的递归栈空间
+     */
+    public ArrayList<Integer> printListFromTailToHeadIterative(ListNode listNode) {
+        ArrayList<Integer> list = new ArrayList<>();
+        ListNode current = listNode;
+        
+        while (current != null) {
+            // 头插法：每次插入到列表的第一个位置
+            list.add(0, current.val);
+            current = current.next;
+        }
+        
+        return list;
     }
 }

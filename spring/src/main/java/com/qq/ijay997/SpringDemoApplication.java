@@ -15,7 +15,7 @@ public class SpringDemoApplication {
         SpringApplication.run(SpringDemoApplication.class, args);
         System.out.println("=================================");
         System.out.println("Spring Boot 演示应用启动成功!");
-        System.out.println("访问地址：http://localhost:8080");
+        System.out.println("访问地址：http://localhost:8082");
         System.out.println("=================================");
     }
 }
