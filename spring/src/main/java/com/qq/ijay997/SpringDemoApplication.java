@@ -2,6 +2,7 @@ package com.qq.ijay997;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * Spring Boot 演示应用主类
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author ijay997
  */
 @SpringBootApplication
+@EnableFeignClients
 public class SpringDemoApplication {
 
     public static void main(String[] args) {

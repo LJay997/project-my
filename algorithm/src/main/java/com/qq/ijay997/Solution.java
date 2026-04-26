@@ -1628,13 +1628,68 @@ public class Solution {
     public ArrayList<Integer> printListFromTailToHeadIterative(ListNode listNode) {
         ArrayList<Integer> list = new ArrayList<>();
         ListNode current = listNode;
-        
+
         while (current != null) {
             // 头插法：每次插入到列表的第一个位置
             list.add(0, current.val);
             current = current.next;
         }
-        
+
         return list;
+    }
+
+    public List<List<Integer>> threeSum1(int[] nums) {
+        if (nums == null || nums.length < 3) return new ArrayList<>();
+        List<List<Integer>> result = new ArrayList<>();
+        Arrays.sort(nums);
+        int n = nums.length;
+
+        for (int i = 0; i < n - 2; i++) {
+            if (nums[i] + nums[i + 1] + nums[i + 2] > 0) break;
+            if (nums[i] + nums[n - 1] + nums[n - 2] < 0) continue;
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            int left = i + 1, right = n - 1;
+            while (left < right) {
+                int sum = nums[i] + nums[left] + nums[right];
+                if (sum == 0) {
+                    result.add(Arrays.asList(nums[i], nums[left], nums[right]));
+
+                    while (left < right && nums[left] == nums[left + 1]) left++;
+                    while (left < right && nums[right] == nums[right - 1]) right--;
+                } else if (sum < 0) {
+                    left++;
+                } else {
+                    right--;
+                }
+            }
+        }
+        return result;
+    }
+
+    public void quickSort3(int[] arr) {
+        if (arr == null || arr.length < 2) return;
+        quickSortHelp3(arr, 0, arr.length - 1);
+    }
+
+    private void quickSortHelp3(int[] arr, int left, int right) {
+        if (left >= right) return;
+        int part = partition(arr, left, right);
+        quickSortHelp(arr, left, part - 1);
+        quickSortHelp(arr, part + 1, right);
+    }
+
+    private int partition(int[] nums, int left, int right) {
+        // 选最左边为基准
+        int pivot = nums[left];
+        int i = left;
+        int j = right;
+        for (; i < j; ) {
+            while (i < j && nums[i] <= pivot) i++;
+            while (i < j && nums[j] >= pivot) j--;
+            if (i < j)
+                swap(nums, i, j);
+        }
+        swap(nums, left, j);
+        return left;
     }
 }

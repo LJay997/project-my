@@ -38,14 +38,12 @@ public class EnumMapDemo {
 
     public static void main(String[] args) {
         // 创建时必须指定枚举类的 Class 对象
-        Map<Status, String> statusMap = new EnumMap<>(Status.class);
+        EnumMap<Status, String> statusMap = new EnumMap<>(Status.class);
 
         // 放入数据
-        statusMap.put(Status.CREATED, "订单已创建");
-        statusMap.put(Status.PROCESSING, "处理中");
-        statusMap.put(Status.COMPLETED, "已完成");
-        // statusMap.put(null, "Error"); // 编译报错或运行抛 NullPointerException (Key不能为null)
-
+        for (Status value : Status.values()) {
+            statusMap.put(value, value.getDescription());
+        }
         // 获取数据 (O(1))
         System.out.println(statusMap.get(Status.CREATED)); 
 
