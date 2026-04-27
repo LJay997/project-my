@@ -9,6 +9,10 @@ public class TopicConsumer {
     public void receiveMessages(String bindingKey) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
+        factory.setPort(5672);
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setVirtualHost("/");
         
         Connection connection = factory.newConnection();
         Channel channel = connection.createChannel();

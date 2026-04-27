@@ -11,6 +11,10 @@ public class RoutingProducer {
     public void sendLog(String severity, String message) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
+        factory.setPort(5672);
+        factory.setUsername("guest");
+        factory.setPassword("guest");
+        factory.setVirtualHost("/");
         
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {

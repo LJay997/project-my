@@ -12,6 +12,10 @@ public class SimpleProducer {
     public void sendMessage(String message) throws Exception {
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost("localhost");
+        factory.setPort(5672);          // RabbitMQ 默认端口
+        factory.setUsername("guest");   // 默认用户名
+        factory.setPassword("guest");   // 默认密码
+        factory.setVirtualHost("/");    // 默认虚拟主机
         
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
