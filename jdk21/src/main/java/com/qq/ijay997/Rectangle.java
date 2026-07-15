@@ -20,4 +20,5 @@ record Rectangle(double length, double width) {
         return new Rectangle(x, y);
     }
     // 1.
+    // 2.
 }
