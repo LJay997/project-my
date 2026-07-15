@@ -19,4 +19,5 @@ record Rectangle(double length, double width) {
                 Math.abs(width * Math.cos(ra.angle()));
         return new Rectangle(x, y);
     }
+    // 1.
 }
