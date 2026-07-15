@@ -3,7 +3,10 @@ package com.qq.ijay997.controller;
 import com.qq.ijay997.config.BloomFilterConfig;
 import com.qq.ijay997.entity.User;
 import com.qq.ijay997.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +18,7 @@ import java.util.List;
  *
  * @author ijay997
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -34,6 +38,20 @@ public class UserController {
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.findAll();
         return ResponseEntity.ok(users);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/user")
+    Page<User> getStores(User user){
+        log.info("获取所有用户,user:{}",user);
+        List<User> all = userService.findAll();
+        return null;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/id")
+    Page<User> getId(Long id){
+        log.info("获取所有用户,id:{}",id);
+        List<User> all = userService.findAll();
+        return null;
     }
 
     /**

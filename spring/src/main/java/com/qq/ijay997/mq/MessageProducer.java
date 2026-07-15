@@ -3,9 +3,11 @@ package com.qq.ijay997.mq;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(prefix = "spring.rabbitmq", name = "host")
 public class MessageProducer implements CommandLineRunner {
     
     @Autowired
