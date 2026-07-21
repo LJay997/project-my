@@ -1,13 +1,6 @@
 package com.qq.ijay997;
 
-
-import com.sun.jmx.remote.internal.ArrayQueue;
-
 import java.util.*;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.swap;
-
 
 /**
  * leetcode
@@ -902,9 +895,45 @@ public class Solution {
 
     public static void main(String[] args) {
         Solution solution = new Solution();
-        ListNode linkedList = createLinkedList(new int[]{1, 2, 3, 4, 5});
-        ListNode listNode = solution.middleNode(linkedList);
-        System.out.println(listNode.val);
+        solution.longestConsecutive1(new int[]{0,3,7,2,5,8,4,6,0,1});
+    }
+
+    public List<List<String>> groupAnagrams3(String[] strs) {
+        if (strs == null || strs.length == 0) return new ArrayList<>();
+
+        HashMap<String, List<String>> stringListHashMap = new HashMap<>(strs.length);
+        for (String str : strs) {
+            if (str == null || str.isEmpty()) continue;
+            char[] charArray = str.toCharArray();
+            Arrays.sort(charArray);
+            String key = new String(charArray);
+            List<String>  value = stringListHashMap.computeIfAbsent(key, k -> new ArrayList<>());
+            value.add(str);
+        }
+        return new ArrayList<>(stringListHashMap.values());
+    }
+
+    // [100,4,200,1,3,2]
+
+    public int longestConsecutive1(int[] nums) {
+        if (nums == null || nums.length == 0) return 0;
+        Set<Integer> set = new TreeSet<>();
+        for (int num : nums) set.add(num);
+
+        int maxLength = 1;
+        int currentLength = 1;
+        Integer prev = null;
+
+        for (Integer num : set) {
+            if (prev != null && num == prev + 1) {
+                currentLength++;
+                maxLength = Math.max(maxLength, currentLength);
+            } else {
+                currentLength = 1;
+            }
+            prev = num;
+        }
+        return maxLength;
     }
 
     private static ListNode createLinkedList(int[] values) {
