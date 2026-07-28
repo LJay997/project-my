@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cpu-test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cpu-test-app
+  template:
+    metadata:
+      labels:
+        app: cpu-test-app
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      containers:
+      - name: cpu-test-app
+        image: cpu-test-app:1.0.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "2"
+            memory: "1Gi"
+        ports:
+        - containerPort: 8080
+        env:
+        - name: JAVA_OPTS
+          value: "-Xms512m -Xmx1g -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+        livenessProbe:
+          httpGet:
+            path: /cpu/status
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /cpu/status
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cpu-test-app
+spec:
+  selector:
+    app: cpu-test-app
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP

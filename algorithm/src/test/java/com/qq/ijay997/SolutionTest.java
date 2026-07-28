@@ -1,6 +1,6 @@
 package com.qq.ijay997;
 
-import com.sun.jmx.remote.internal.ArrayQueue;
+import java.util.ArrayDeque;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -186,6 +186,65 @@ class SolutionTest {
 
         List<List<Integer>> lists = solution.levelOrder(root);
         System.out.println(lists); // // 预期结果: [[3],[9,20],[15,7]]
+    }
+
+    @Test
+    void levelOrder2() {
+        // 测试用例 1: 正常二叉树
+        System.out.println("\n=== levelOrder2 测试用例 1: 正常二叉树 ===");
+        TreeNode root1 = new TreeNode(3,
+                new TreeNode(9), new TreeNode(20,
+                new TreeNode(15), new TreeNode(7)));
+        List<List<Integer>> result1 = solution.levelOrder2(root1);
+        System.out.println("预期结果: [[3],[9,20],[15,7]]");
+        System.out.println("实际结果: " + result1);
+
+        // 测试用例 2: 空树
+        System.out.println("\n=== levelOrder2 测试用例 2: 空树 ===");
+        TreeNode root2 = null;
+        List<List<Integer>> result2 = solution.levelOrder2(root2);
+        System.out.println("预期结果: null");
+        System.out.println("实际结果: " + result2);
+
+        // 测试用例 3: 只有根节点
+        System.out.println("\n=== levelOrder2 测试用例 3: 只有根节点 ===");
+        TreeNode root3 = new TreeNode(1);
+        List<List<Integer>> result3 = solution.levelOrder2(root3);
+        System.out.println("预期结果: [[1]]");
+        System.out.println("实际结果: " + result3);
+
+        // 测试用例 4: 只有左子树
+        System.out.println("\n=== levelOrder2 测试用例 4: 只有左子树 ===");
+        TreeNode root4 = new TreeNode(1,
+                new TreeNode(2,
+                        new TreeNode(3,
+                                new TreeNode(4), null), null), null);
+        List<List<Integer>> result4 = solution.levelOrder2(root4);
+        System.out.println("预期结果: [[1],[2],[3],[4]]");
+        System.out.println("实际结果: " + result4);
+
+        // 测试用例 5: 只有右子树
+        System.out.println("\n=== levelOrder2 测试用例 5: 只有右子树 ===");
+        TreeNode root5 = new TreeNode(1,
+                null, new TreeNode(2,
+                        null, new TreeNode(3,
+                                null, new TreeNode(4))));
+        List<List<Integer>> result5 = solution.levelOrder2(root5);
+        System.out.println("预期结果: [[1],[2],[3],[4]]");
+        System.out.println("实际结果: " + result5);
+
+        // 测试用例 6: 完全二叉树
+        System.out.println("\n=== levelOrder2 测试用例 6: 完全二叉树 ===");
+        TreeNode root6 = new TreeNode(1,
+                new TreeNode(2,
+                        new TreeNode(4), new TreeNode(5)),
+                new TreeNode(3,
+                        new TreeNode(6), new TreeNode(7)));
+        List<List<Integer>> result6 = solution.levelOrder2(root6);
+        System.out.println("预期结果: [[1],[2,3],[4,5,6,7]]");
+        System.out.println("实际结果: " + result6);
+
+        System.out.println("\nlevelOrder2 测试完成");
     }
 
     /**
@@ -876,7 +935,7 @@ class SolutionTest {
 
     @Test
     void rotateString3() {
-        ArrayQueue<Character> objects = new ArrayQueue<>(4);
+        ArrayDeque<Character> objects = new ArrayDeque<>();
         objects.add('a');
         objects.add('b');
         objects.add('c');

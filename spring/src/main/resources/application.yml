@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+# MQTT 配置
+mqtt:
+  broker-url: tcp://broker.emqx.io:1883
+  client-id-prefix: spring-mqtt-
+  username: emqx
+  password: public
+  default-topic: test/topic
+  qos: 1
+
+# Redis 配置
+spring:
+  application:
+    name: mqtt-demo
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 0

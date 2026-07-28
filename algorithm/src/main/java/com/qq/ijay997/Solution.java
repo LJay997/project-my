@@ -1,6 +1,7 @@
 package com.qq.ijay997;
 
 import java.util.*;
+import java.util.ArrayDeque;
 
 /**
  * leetcode
@@ -402,6 +403,31 @@ public class Solution {
         return result;
     }
 
+    public List<List<Integer>> levelOrder2(TreeNode root){
+        if (root == null) return  null;
+
+        List<List<Integer>> result = new ArrayList<>();
+        Deque<TreeNode> queue = new ArrayDeque<>();
+        queue.offer(root);
+        int curLevelNodeSize;
+        TreeNode node;
+        while (!queue.isEmpty()) {
+            curLevelNodeSize = queue.size();
+            ArrayList<Integer> curLevel = new ArrayList<>();
+            for (int i = 0; i < curLevelNodeSize; i++) {
+                node = queue.poll();
+                curLevel.add(node.val);
+                if (node.left != null){
+                    queue.addLast(node.left);
+                }
+                if (node.right != null){
+                    queue.addLast(node.right);
+                }
+            }
+            result.add(curLevel);
+        }
+        return result;
+    }
     /**
      * 104. 二叉树的最大深度
      * https://leetcode.cn/problems/maximum-depth-of-binary-tree
