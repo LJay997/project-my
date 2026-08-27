@@ -1,8 +1,11 @@
 package com.qq.ijay997;
 
+import com.qq.ijay997.entity.Order;
 import com.qq.ijay997.entity.User;
 import com.qq.ijay997.repository.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -21,6 +24,21 @@ class SpringDemoApplicationTests {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private KieContainer kieContainer;
+
+    @Test
+    void testKie(){
+        KieSession kieSession = kieContainer.newKieSession();
+        Order order = new Order();
+        order.setAmout( 1000);
+        kieSession.insert(order);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        System.out.println(order);
+    }
 
     @Test
     void contextLoads() {

@@ -8,9 +8,9 @@ import java.util.ArrayDeque;
  */
 public class Solution {
 
-    /**
-     * <a href="https://leetcode.cn/problems/two-sum/">1. 两数之和</a>
-     */
+        /**
+         * <a href="https://leetcode.cn/problems/two-sum/">1. 两数之和</a>
+         */
     public int[] twoSum(int[] nums, int target) {
         for (int left = 0; left < nums.length - 1; left++) {
             int shengyu = target - nums[left];

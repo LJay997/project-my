@@ -1,0 +1,100 @@
+package com.qq.ijay997;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+public class FileStringCounter {
+
+    /**
+     * 统计字符串在文件中出现的次数
+     * @param fileName 文件路径
+     * @param str 要查找的目标字符串
+     * @return 出现的次数
+     */
+    public static int countOccurrences(String fileName, String str) {
+        // 1. 参数校验
+        if (fileName == null || str == null || str.isEmpty()) {
+            return 0;
+        }
+
+        File file = new File(fileName);
+        // 检查文件是否存在
+        if (!file.exists() || !file.isFile()) {
+            System.out.println("错误：文件不存在或路径无效 -> " + fileName);
+            return 0;
+        }
+
+        StringBuilder contentBuilder = new StringBuilder();
+
+        // 2. 读取文件内容 (使用 try-with-resources 自动关闭流)
+        try (BufferedReader reader = new BufferedReader(
+                new FileReader(file, StandardCharsets.UTF_8))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                contentBuilder.append(line);
+                // 注意：readLine() 会丢弃换行符。
+                // 如果目标字符串可能跨行，这里需要补上换行符：contentBuilder.append("\n");
+                // 如果只是统计普通关键词，通常不需要补换行符，或者视具体需求而定。
+                // 此处为了通用性，假设目标字符串不包含换行符，直接拼接即可。
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
+        }
+
+        String fileContent = contentBuilder.toString();
+//        Files.readString(Path.of("data.txt"), StandardCharsets.UTF_8);
+        // 3. 统计出现次数
+        int count = 0;
+        int fromIndex = 0;
+
+        // 循环查找目标字符串
+        while ((fromIndex = fileContent.indexOf(str, fromIndex)) != -1) {
+            count++;
+            // 移动索引位置，避免死循环，并查找下一个匹配项
+            // index + targetStr.length() 表示跳过当前匹配的字符串
+            fromIndex += str.length();
+        }
+
+        return count;
+    }
+
+    // 测试主方法
+    public static void main(String[] args) {
+        // 打印当前工作目录，便于调试路径问题
+        System.out.println("当前工作目录: " + System.getProperty("user.dir"));
+
+        // 在项目根目录下创建 test.txt（如果不存在）
+        String projectRoot = System.getProperty("user.dir");
+        File testFile = new File(projectRoot, "test.txt");
+
+        // 如果文件不存在，自动创建测试数据
+        if (!testFile.exists()) {
+            String testContent = "Java is a popular programming language. Java\n" +
+                    "Many developers love Java.\n" +
+                    "Java is used everywhere, from web to mobile.\n" +
+                    "Python is also popular, but Java has its own charm.\n" +
+                    "Learning Java can open many doors.\n" +
+                    "Java Java Java!\n" +
+                    "Some say Java is verbose, but it is powerful.\n" +
+                    "The Java ecosystem is huge.";
+            try {
+                java.nio.file.Files.writeString(testFile.toPath(), testContent, StandardCharsets.UTF_8);
+                System.out.println("已自动创建测试文件: " + testFile.getAbsolutePath());
+            } catch (IOException e) {
+                System.out.println("创建测试文件失败: " + e.getMessage());
+                return;
+            }
+        }
+
+        String searchStr = "Java";
+        int result = countOccurrences(testFile.getAbsolutePath(), searchStr);
+        System.out.println("字符串 \"" + searchStr + "\" 在文件中出现了 " + result + " 次");
+    }
+}
