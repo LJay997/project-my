@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Implementation Notes — kjgl-research-plaform 缓存架构方案 B 重构</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 960px; margin: 24px auto; padding: 0 16px; color: #24292f; line-height: 1.65; }
+  h1 { border-bottom: 2px solid #d0d7de; padding-bottom: 8px; font-size: 22px; }
+  h2 { border-bottom: 1px solid #d0d7de; padding-bottom: 6px; font-size: 18px; margin-top: 32px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid #d0d7de; padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: #f6f8fa; }
+  code { background: #f6f8fa; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  pre { background: #f6f8fa; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+  .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; margin-right: 6px; }
+  .decision { background: #ddf4ff; color: #0969da; }
+  .deviation { background: #fff1e5; color: #bc4c00; }
+  .tradeoff { background: #f0e7ff; color: #8250df; }
+  .open { background: #ffebe9; color: #cf222e; }
+  .meta { color: #656d76; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>Implementation Notes</h1>
+<p class="meta">规范：<code>.trae/documents/cache-resolver-vs-custom-manager.md</code>（已批准 · 方案 B）<br>
+范围：<code>kjgl-research-plaform/service</code> → <code>config/cache</code> 包 · 状态：代码完成，编译验证按用户要求跳过 · 更新：2026-09-19</p>
+
+<h2><span class="tag decision">设计决策</span>关键决策记录</h2>
+<table>
+  <tr><th style="width:28%">决策点</th><th>结论与依据</th></tr>
+  <tr>
+    <td>Redis 键前缀写法</td>
+    <td><code>prefixCacheNameWith(globalPrefix + ":")</code>。<b>javap 字节码验证</b>：<code>CacheKeyPrefix.prefixed(p)</code> 的 lambda 为 <code>p + cacheName + ":"</code>，会自动追加缓存名与分隔符；且 <code>RedisCache.prefixCacheKey</code> = <code>getKeyPrefixFor(this.name) + key</code>。最终键：<code>kjgl-rp:{cacheName}:t{tenantId}:{bizKey}</code>。前缀含缓存名段是 <code>@CacheEvict(allEntries=true)</code> 前缀 SCAN 不跨缓存误删的前提。</td>
+  </tr>
+  <tr>
+    <td>Caffeine 实例按 baseName 归一化</td>
+    <td><code>TtlCaffeineCacheManager</code> 自维护 <code>cachesByBaseName</code>，剥离 <code>#ttl</code> 后按基础名建/取实例。原因：本地缓存没有 Redis 的共享物理键空间，若按完整名（含 #ttl）建实例，<code>@Cacheable("caffeine:a#120")</code> 与 <code>@CacheEvict("caffeine:a")</code> 会落在两个 Caffeine 实例上，evict 落空。</td>
+  </tr>
+  <tr>
+    <td>Redis 通道保留父类完整名 cacheMap</td>
+    <td><code>lov-cache#600</code> 与 <code>lov-cache</code> 是两个 <code>RedisCache</code> 实例，但键前缀相同、共享同一物理键空间，跨 TTL 变体 evict 天然一致，无需归一化。</td>
+  </tr>
+  <tr>
+    <td>TTL 解析职责放在 CacheManager，通道分流放在 CacheResolver</td>
+    <td>RoutingCacheResolver 仅做前缀路由并把 <code>#ttl</code> 段原样下传；两个官方管理器子类各自解析（规则一致：内嵌 <code>#秒数</code> &gt; yml <code>cache.ttl.*</code> 分桶 &gt; <code>cache.default-ttl-seconds</code>）。单一职责，替换任一层不动其余。</td>
+  </tr>
+  <tr>
+    <td>租户隔离置于 TenantCacheResolver（装饰层）</td>
+    <td>SpEL key 与 keyGenerator 在 Spring CacheOperation 构建期互斥，租户段不能进 KeyGenerator/SpEL；装饰 <code>Cache</code> 统一拼 <code>t{tenantId}:</code>，SpEL 仅算业务键，注解零定制。</td>
+  </tr>
+  <tr>
+    <td>不覆写 <code>CachingConfigurer.cacheManager()</code></td>
+    <td>已提供全局 <code>cacheResolver()</code>，缓存拦截器不再回退查询 CacheManager Bean，两个通道 Bean 无歧义；<code>@Primary</code> 加在 redisCacheManager 上仅作容器内其他组件按类型注入的兜底。</td>
+  </tr>
+  <tr>
+    <td>新通道扩展方式</td>
+    <td><code>RoutingCacheResolver.registerChannel(前缀, CacheManager)</code>，路由表为 LinkedHashMap（初始化期注册，非线程安全），新增通道零改解析逻辑。</td>
+  </tr>
+</table>
+
+<h2><span class="tag deviation">偏差</span>相对已批准计划的偏离</h2>
+<table>
+  <tr><th style="width:34%">计划草案</th><th>实际实现</th><th>原因</th></tr>
+  <tr>
+    <td><code>prefixCacheNameWith(globalPrefix + ":" + baseName + ":")</code>（计划与原 TenantRoutingCacheManager 均如此）</td>
+    <td><code>prefixCacheNameWith(globalPrefix + ":")</code></td>
+    <td>字节码证明草案写法会叠加自动追加的 cacheName，产生 <code>kjgl-rp:lov-cache:lov-cache:t1:…</code> 重复键段。原方案 A 类的该隐患随本类删除一并消除（尚未运行部署，无迁移成本）。</td>
+  </tr>
+  <tr>
+    <td>TtlCaffeineCacheManager：无 <code>#</code> 走 <code>super.getCache</code>，含 <code>#</code> 走自维护 <code>dynamicCaches</code>（按完整名）</td>
+    <td>统一覆写 <code>getCache</code>，全部按 baseName 归一化 + 自维护 <code>cachesByBaseName</code>；<code>getCacheNames()</code> 一并覆写</td>
+    <td>草案两条路径产出不同 Caffeine 实例，跨 TTL 变体 evict 落空（详见设计决策表）。归一化是正确性前提。</td>
+  </tr>
+  <tr>
+    <td>计划摘要表述"剥离 #ttl 段 → getCache(基础名)"</td>
+    <td>保留 <code>#ttl</code> 段整名传给目标 CacheManager</td>
+    <td>以计划详细设计（"剥通道前缀，保留 #ttl"）为准；若提前剥离，内嵌 TTL 信息丢失、语法失效。</td>
+  </tr>
+</table>
+
+<h2><span class="tag tradeoff">权衡</span>备选方案与取舍</h2>
+<table>
+  <tr><th style="width:30%">权衡点</th><th>选择</th><th>放弃的备选与理由</th></tr>
+  <tr>
+    <td>Caffeine 同基础名多 TTL 变体</td>
+    <td>first-arrival：TTL 取首个到达请求解析的值</td>
+    <td>每变体独立实例会破坏 evict；Caffeine 变长过期（Expiry API）需按 key 反查 TTL、复杂度高且与官方 CaffeineCache 适配割裂。同基础名不同 TTL 的正确姿势是 yml 分桶统一声明。</td>
+  </tr>
+  <tr>
+    <td>extends 官方管理器 vs 自实现 CacheManager</td>
+    <td>extends RedisCacheManager / CaffeineCacheManager</td>
+    <td>自实现需重造键计算、SCAN 清理、事务语义、allowNullValues 适配等；extends 仅覆写创建钩子，官方语义全部保留（也符合用户"使用官方 CacheManager 组合"的诉求）。</td>
+  </tr>
+  <tr>
+    <td>父类 cacheMap vs 自维护实例池</td>
+    <td>Redis 用父类 cacheMap（完整名 key）；Caffeine 用自维护 map（baseName key）</td>
+    <td>Redis 键空间共享、父类机制够用；Caffeine 需要归一化语义，父类 cacheMap 无法表达。</td>
+  </tr>
+  <tr>
+    <td>两个 CacheManager Bean vs 继续单 Bean</td>
+    <td>两个标准 Bean + @Primary（Redis）</td>
+    <td>方案 A 单类虽无 Bean 歧义，但扩展需改类；Boot CacheAutoConfiguration 对多 Bean 场景正常退避，actuator 按 <code>Map&lt;String, CacheManager&gt;</code> 注入兼容多 Bean。</td>
+  </tr>
+</table>
+
+<h2><span class="tag open">未决问题</span>待确认 / 待验证</h2>
+<table>
+  <tr><th style="width:30%">问题</th><th>说明</th></tr>
+  <tr>
+    <td>编译与启动验证已跳过</td>
+    <td>按用户要求未执行计划第八步（mvn compile）；静态检查（IDE 诊断 + 全文残留 grep）已通过。建议启动后抽检：① Redis 键为 <code>kjgl-rp:{cacheName}:t{tenantId}:{bizKey}</code> 无重复段；② Caffeine 通道 <code>@Cacheable("caffeine:a#120")</code> 后 <code>@CacheEvict("caffeine:a")</code> 生效。</td>
+  </tr>
+  <tr>
+    <td>NullValue 序列化兼容</td>
+    <td><code>GenericJackson2JsonRedisSerializer</code> + 允许 null（防穿透）的组合沿袭自方案 A，未做运行时验证；若出现反序列化异常，可在 valueSerializer 上注册 <code>GenericJackson2JsonRedisSerializer.registerNullValueSerializer</code>。</td>
+  </tr>
+  <tr>
+    <td>Caffeine first-arrival 语义是否可接受</td>
+    <td>并发下同基础名首次访问决定 TTL，后到的不同 #ttl 变体不生效。团队若要求"注解变体各自生效"需回到独立实例方案并另想 evict 策略（当前不推荐）。</td>
+  </tr>
+  <tr>
+    <td>通道前缀可配置化</td>
+    <td><code>caffeine:</code>/<code>redis:</code> 目前为代码常量；如需 yml 化可扩展 CacheProperties（<code>cache.channels.*</code>），当前按 YAGNI 暂不做。</td>
+  </tr>
+  <tr>
+    <td>文档同步</td>
+    <td><code>CacheProperties</code> javadoc 中的键结构图与 <code>service/src/main/java/documents/</code> 下历史分析文档仍描述方案 A；如需归档说明可在下一次文档整理时同步。</td>
+  </tr>
+</table>
+
+</body>
+</html>
