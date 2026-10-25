@@ -13,6 +13,10 @@
 
     <properties>
         <drools.version>8.41.0.Final</drools.version>
+        <!-- EasyExcel 4.0.3 基于 POI 5.2.5，与项目内 drools-decisiontables 的 POI 5.x 兼容 -->
+        <easyexcel.version>4.0.3</easyexcel.version>
+        <!-- EasyExcel 4.0.3 基于 POI 5.2.5；drools-decisiontables 传递的是 5.1.0，需统一版本 -->
+        <poi.version>5.2.5</poi.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Starter Web -->
@@ -116,6 +120,13 @@
             <artifactId>hutool-all</artifactId>
             <version>5.8.25</version>
         </dependency>
+
+        <!-- EasyExcel：基于 POI 的流式 Excel 读写，低内存占用 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>easyexcel</artifactId>
+            <version>${easyexcel.version}</version>
+        </dependency>
         
         <!-- Eclipse Paho MQTT Client -->
         <dependency>
@@ -179,6 +190,12 @@
                     <target>11</target>
                 </configuration>
             </plugin>
+            <!-- Maven 默认的 2.12.4 不支持 JUnit 5，需显式指定 3.x -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+            </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
@@ -211,6 +228,38 @@
                 <version>2021.0.8</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!--
+                统一 POI 版本：EasyExcel 3.3.4 需要 POI 5.2.5，
+                drools-decisiontables 8.41.0.Final 传递 POI 5.1.0。
+                若不统一，运行时会因 poi-ooxml 与 poi-ooxml-lite/schemas 版本不匹配
+                抛出 NoSuchFieldError: CTWorkbook.Factory。
+            -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml-lite</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
+
+            <!--
+                EasyExcel 3.3.4 需要 commons-io 2.12+（UnsynchronizedByteArrayOutputStream#builder），
+                项目其余依赖传递进来的是 2.11.0，需提升版本。
+            -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.15.1</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
