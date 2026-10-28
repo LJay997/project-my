@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>实现说明 — MaskingDemoController 导出脱敏</title>
+<style>
+  body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; max-width: 960px; margin: 40px auto; padding: 0 24px; color: #1f2328; line-height: 1.7; }
+  h1 { border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; }
+  h2 { margin-top: 36px; border-left: 4px solid #2563eb; padding-left: 10px; }
+  h3 { margin-top: 22px; color: #1e40af; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 14px; }
+  th, td { border: 1px solid #d1d5db; padding: 8px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; }
+  code { background: #f3f4f6; padding: 2px 5px; border-radius: 4px; font-size: 13px; }
+  .meta { color: #6b7280; font-size: 14px; }
+  .tag { display: inline-block; background: #eff6ff; color: #1d4ed8; border-radius: 10px; padding: 1px 8px; font-size: 12px; margin-right: 6px; }
+  ul { padding-left: 22px; }
+</style>
+</head>
+<body>
+
+<h1>实现说明：通用 Excel 导出脱敏机制</h1>
+<p class="meta">依据：<code>.trae/documents/masking-demo-file-export-plan.md</code> ｜ 模块：<code>spring</code> ｜ 更新：2026-10-25</p>
+
+<h2>一、设计决策</h2>
+
+<h3>1. 统一判定入口 <code>SensitiveValues</code></h3>
+<p>JSON 序列化、Excel 单元格写出、Bean 级反射改写三条链路统一调用 <code>SensitiveValues.maskIfNeeded(Sensitive, String)</code>，避免出现两套权限判断逻辑漂移。</p>
+<pre><code>public static String maskIfNeeded(Sensitive sensitive, String value) {
+    if (sensitive == null || value == null) return value;
+    if (UserContextHolder.hasPermission(sensitive.permission())) return value;
+    return MaskRules.mask(sensitive.type(), value);
+}</code></pre>
+
+<h3>2. 选择单元格级 <code>CellWriteHandler</code></h3>
+<p>使用 EasyExcel 4.0.3 的 <code>afterCellDataConverted(CellWriteHandlerContext)</code>，通过 <code>context.getHeadData().getField()</code> 读取字段上的 <code>@Sensitive</code>，再以 <code>context.getFirstCellData().setStringValue(...)</code> 改写单元格。</p>
+<table>
+  <tr><th>候选方案</th><th>结论</th></tr>
+  <tr><td><code>Converter&lt;String&gt;</code></td><td>会替换全局 String 转换器，影响面过大，放弃</td></tr>
+  <tr><td>Bean 级预改写（<code>SensitiveDataMasker</code>）</td><td>需复制列表且会改源对象，降级为可选的通用工具</td></tr>
+  <tr><td>AOP 拦截 <code>doWrite</code></td><td>EasyExcel 为流式 Builder/静态调用，无法稳定拦截</td></tr>
+  <tr><td><code>CellWriteHandler</code></td><td>采用：字段级、行级、零侵入、不改源 Bean</td></tr>
+</table>
+
+<h3>3. 表头与非字符串单元格默认跳过</h3>
+<p><code>context.getHead()==true</code> 时不处理，保证列名不变；<code>getStringValue()==null</code> 时自然跳过，因此数字列（如年龄、用户ID）不会被误脱敏。</p>
+
+<h3>4. 手机号为确定性 mock 数据</h3>
+<p>不在 <code>User</code> 实体新增 <code>phone</code> 字段，避免触及约 47 处构造器调用与 <code>/api/users</code> 的明文输出风险；JSON 与导出共用 <code>DemoMockData.phoneOf(userId)</code>，保证两种输出同名值一致。</p>
+
+<h2>二、偏差</h2>
+<table>
+  <tr><th>规范原文</th><th>实际实现</th><th>原因</th></tr>
+  <tr>
+    <td>4.6 使用 <code>@InjectMocks</code> 装配 <code>MaskingExportServiceImpl</code></td>
+    <td>在 <code>MaskingExportServiceTest</code> 中用 <code>new MaskingExportServiceImpl()</code> + <code>ReflectionTestUtils.setField</code></td>
+    <td>该实现类使用字段注入，<code>@InjectMocks</code> 同样可行；此处保留显式装配以与既有 <code>ExcelServiceTest</code> 风格一致，行为等价</td>
+  </tr>
+  <tr>
+    <td>4.11 仅要求“xlsx Content-Type”断言</td>
+    <td>测试改用 <code>content().contentTypeCompatibleWith(...)</code></td>
+    <td><code>prepareDownload</code> 调用了 <code>setCharacterEncoding(UTF-8)</code>，实际响应头为 <code>...sheet;charset=UTF-8</code>；改用兼容匹配，不削弱校验，也不移除对文本错误响应有益的编码设置</td>
+  </tr>
+  <tr>
+    <td>4.11 示例使用 Mockito <code>willReturn</code></td>
+    <td>全部改为 <code>thenReturn</code></td>
+    <td>项目内 Mockito 版本不支持 <code>OngoingStubbing.willReturn</code></td>
+  </tr>
+</table>
+
+<h2>三、权衡</h2>
+<table>
+  <tr><th>取舍点</th><th>选择</th><th>代价 / 收益</th></tr>
+  <tr>
+    <td>脱敏时机</td>
+    <td>单元格写出阶段</td>
+    <td>收益：不改源 DTO、任意模型自动生效；代价：依赖 <code>Head#getField()</code>，动态 <code>List&lt;List&lt;String&gt;&gt;</code> 表头场景不生效</td>
+  </tr>
+  <tr>
+    <td>既有导出迁移</td>
+    <td><code>ExcelServiceImpl</code> 去掉 <code>maskBeans</code>，改用 <code>MaskingExcelWriter.builder</code></td>
+    <td>收益：证明机制可复用、去掉对源 DTO 的原地改写；代价：需移除 <code>SensitiveDataMasker</code> 的注入与测试装配</td>
+  </tr>
+  <tr>
+    <td>处理器实例</td>
+    <td>静态单例复用</td>
+    <td>处理器无状态，可安全共享；<code>registerWriteHandler</code> 为 Workbook 级，多 Sheet 同时生效</td>
+  </tr>
+  <tr>
+    <td>注解复用</td>
+    <td>继续使用 <code>@Sensitive</code>，不新增注解</td>
+    <td>收益：JSON 与 Excel 元数据同源；代价：无 Excel 专属配置（如自定义掩码字符），当前需求无需</td>
+  </tr>
+</table>
+
+<h2>四、未决问题</h2>
+<ul>
+  <li>动态表头导出（<code>List&lt;List&lt;String&gt;&gt;</code>）没有字段元数据，无法走本机制，需要业务侧自行脱敏或后续增加“按列索引配置”的处理器。</li>
+  <li>异步导出线程不会继承 <code>UserContextHolder</code> 的 ThreadLocal，如后续引入异步导出，需在任务入口显式设置权限上下文。</li>
+  <li>当前仅覆盖 EasyExcel；CSV/PDF 等格式仍需复用 <code>SensitiveDataMasker</code>（Bean 级）或直接调用 <code>SensitiveValues</code>。</li>
+  <li><code>DemoMockData.phoneOf</code> 仅为演示数据；接入真实手机号字段时需同步评估 <code>/api/users</code> 等既有接口的脱敏配置。</li>
+</ul>
+
+<h2>五、验证结果</h2>
+<ul>
+  <li><span class="tag">通过</span><code>MaskingDemoControllerTest</code> 8 例（含 3 个导出用例）</li>
+  <li><span class="tag">通过</span><code>MaskingExportServiceTest</code> 4 例</li>
+  <li><span class="tag">通过</span><code>ExcelServiceTest</code> 5 例、<code>ExcelControllerTest</code> 5 例</li>
+  <li><span class="tag">通过</span><code>SensitiveDataMaskerTest</code> 5 例、<code>MaskRulesTest</code> 7 例</li>
+  <li><span class="tag">结果</span>合计 34 例全部通过（BUILD SUCCESS）</li>
+</ul>
+
+</body>
+</html>

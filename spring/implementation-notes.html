@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实现说明：远端接口调用本地消息表（Transactional Outbox）</title>
+    <style>
+        body { font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; margin: 2rem auto; max-width: 920px; line-height: 1.7; color: #1f2328; padding: 0 1rem; }
+        h1 { border-bottom: 2px solid #0969da; padding-bottom: .4rem; }
+        h2 { margin-top: 2rem; color: #0969da; }
+        code { background: #f6f8fa; padding: .15rem .4rem; border-radius: 4px; font-size: .92em; }
+        pre { background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }
+        table { border-collapse: collapse; width: 100%; margin: 1rem 0; }
+        th, td { border: 1px solid #d0d7de; padding: .5rem .7rem; text-align: left; font-size: .95em; }
+        th { background: #f6f8fa; }
+        .tag { display: inline-block; padding: .1rem .5rem; border-radius: 10px; font-size: .85em; color: #fff; margin-right: .3rem; }
+        .decision { background: #1a7f37; }
+        .deviation { background: #bc4c00; }
+        .tradeoff { background: #953800; }
+        .open { background: #cf222e; }
+        li { margin: .35rem 0; }
+    </style>
+</head>
+<body>
+<h1>实现说明：远端接口调用本地消息表（Transactional Outbox）</h1>
+<p>针对「文件导入、数据新建、编辑、删除」四类业务场景接入远端接口调用，采用<strong>事务发件箱（Transactional Outbox）+ 本地消息表</strong>方案，实现异步解耦、批量发送、失败重试与状态全链路追踪。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>事务监听机制</td><td>使用 Spring 原生 <code>@TransactionalEventListener(phase = AFTER_COMMIT)</code>（即项目笔记中的「事务监听机制」），配合 <code>@Async</code> 在专用线程池异步执行。</td></tr>
+    <tr><td>2</td><td>本地消息表</td><td>新建 JPA 实体 <code>RemoteMessage</code>（表 <code>t_remote_message</code>），持久化远端请求参数（序列化为 JSON 字符串）。</td></tr>
+    <tr><td>3</td><td>状态模型</td><td>四态：<code>PENDING / SENDING / SUCCESS / FAILED</code>，配合 <code>RemoteMessageLog</code> 记录每次状态变更，形成全链路轨迹。</td></tr>
+    <tr><td>4</td><td>远端接口抽象</td><td>定义 <code>RemoteApiGateway#sendBatch(List&lt;RemoteMessage&gt;)</code> 接口；默认实现 <code>MockRemoteApiGateway</code> 用于演示/测试，生产可将 Feign/HTTP 实现替换。</td></tr>
+    <tr><td>5</td><td>批量组装</td><td>按 ID 升序（FIFO）一次抢占至多 <code>batchSize</code> 条 PENDING 消息，一次 <code>sendBatch</code> 即一次远端调用。</td></tr>
+    <tr><td>6</td><td>并发控制</td><td>线程池 <code>remoteCallExecutor</code> 核心/最大线程数 = <code>concurrency</code>，从线程池维度限制并发批次数。</td></tr>
+    <tr><td>7</td><td>事务一致性</td><td><code>enqueue</code> 采用默认 REQUIRED 传播，加入主业务事务；消息写入与业务写入同生共死。</td></tr>
+    <tr><td>8</td><td>抢占防重</td><td><code>transitionStatus</code> 用条件 UPDATE（<code>WHERE status=:from</code>）实现 CAS，避免并发调度重复发送。</td></tr>
+    <tr><td>9</td><td>手动重试退避</td><td>重试为「重置 FAILED → PENDING + 立即 dispatch」，由用户主动触发；<code>retryCount</code> 仅作追踪，不设自动最大次数。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span>需求中的「@transactionListener 注解」项目中并无同名自定义注解，实现为 Spring 原生 <code>@TransactionalEventListener</code>（语义等价，且项目笔记已记载该机制）。</li>
+    <li><span class="tag deviation">偏差</span>需求中的「业务数据列表页面」后端项目无前端页面，落地为 REST 接口 <code>GET /api/remote-messages</code>（查询）与 <code>POST /api/remote-messages/{id}/retry</code>、<code>POST /api/remote-messages/retry-failed</code>（手动重试）。</li>
+    <li><span class="tag deviation">偏差</span>未实现「定时自动重试」：需求第 3 点仅要求「手动重试」，故未引入 <code>@Scheduled</code> 定时任务（避免测试抖动）；自动退避作为后续扩展项。</li>
+    <li><span class="tag deviation">偏差</span>「文件导入」场景通过新增 <code>UserService#importUser</code> 与 <code>save</code> 区分 bizType（IMPORT 与 CREATE），因此在 <code>UserExcelImportListener</code> 中由 <code>save</code> 改为 <code>importUser</code>。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>业务方法内直接同步调用远端接口</td><td>阻塞主流程、远端不可用时回滚业务，违背解耦与最终一致性目标。</td></tr>
+    <tr><td>MQ 消息队列（项目已有 RabbitMQ/RocketMQ）</td><td>引入 Broker 的可用性/一致性复杂度；需求明确要求「本地消息表」，故采用 Outbox 模式，MQ 可作为后续投递通道。</td></tr>
+    <tr><td>「抢占 + 发送」合并为单个长事务</td><td>远端调用期间长时间持有数据库事务，占用连接与行锁；拆分为短事务抢占 + 事务外发送。</td></tr>
+    <tr><td>Feign 真实远端服务</td><td>演示项目无固定远端地址，且测试需确定性；以 <code>RemoteApiGateway</code> 抽象隔离，Mock 实现可一键替换。</td></tr>
+    <tr><td>为每条消息独立发起远端调用</td><td>调用次数多、吞吐低；按批次组装请求参数统一发起，满足需求第 2 点。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>远端接口的真实协议与鉴权方式（当前为 Mock；接入真实服务时需明确 URL、签名/Token、超时与幂等键）。</li>
+    <li><span class="tag open">待确认</span>是否需要「最大自动重试次数 + 指数退避」的定时兜底发送（当前仅手动重试）。</li>
+    <li><span class="tag open">待确认</span>消息清理策略：SUCCESS 历史消息是否需要归档/定期删除，避免消息表无限增长。</li>
+    <li><span class="tag open">待确认</span>「文件导入」按行入队（一行一条 IMPORT 消息）是否与期望一致，或需改为「一次导入一批消息」。</li>
+</ul>
+
+<h2>五、验证</h2>
+<p>相关测试全部通过（共 18 例）：</p>
+<pre>OutboxServiceTest             6  例  通过
+RemoteCallTransactionListenerTest  2  例  通过
+RemoteCallIntegrationTest     5  例  通过  (四类场景入队/正常发送/失败标记/手动重试/事务回滚一致性)
+ExcelServiceTest              5  例  通过  (导入链路改走 importUser 后仍然通过)</pre>
+<p>执行命令：<code>mvn -pl spring test -Dtest='OutboxServiceTest,RemoteCallTransactionListenerTest,RemoteCallIntegrationTest,ExcelServiceTest'</code></p>
+</body>
+</html>

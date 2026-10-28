@@ -44,6 +44,11 @@ public interface UserService {
     User save(User user);
 
     /**
+     * 文件导入场景新建用户：与 {@link #save} 的区别在于产生 IMPORT 类型的远端消息。
+     */
+    User importUser(User user);
+
+    /**
      * 更新用户
      * 
      * @param id   用户 ID

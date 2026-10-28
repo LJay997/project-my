@@ -1,6 +1,8 @@
 package com.qq.ijay997.service.impl;
 
 import com.qq.ijay997.entity.User;
+import com.qq.ijay997.outbox.OutboxService;
+import com.qq.ijay997.outbox.enums.BizType;
 import com.qq.ijay997.repository.UserRepository;
 import com.qq.ijay997.service.OrderService;
 import com.qq.ijay997.service.UserService;
@@ -14,6 +16,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -42,6 +45,9 @@ public class UserServiceImpl implements UserService {
     @Resource
     private PlatformTransactionManager transactionManager;
 
+    @Autowired
+    private OutboxService outboxService;
+
     @Override
     public List<User> findAll() {
         objectFactory.getObject().getOrder();
@@ -60,9 +66,21 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User save(User user) {
+        return saveAndEnqueue(user, BizType.CREATE);
+    }
+
+    @Override
+    public User importUser(User user) {
+        return saveAndEnqueue(user, BizType.IMPORT);
+    }
+
+    /**
+     * 保存用户并在同一事务内写入本地消息表（数据新建/文件导入两类场景共用）。
+     */
+    private User saveAndEnqueue(User user, BizType bizType) {
         return transactionTemplate.execute(transactionStatus -> {
             User newUser = userRepository.save(user);
-//            transactionStatus.setRollbackOnly();
+            outboxService.enqueue(bizType, String.valueOf(newUser.getId()), newUser);
             return newUser;
         });
     }
@@ -172,6 +190,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public User update(Long id, User userDetails) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("用户不存在，ID: " + id));
@@ -180,12 +199,20 @@ public class UserServiceImpl implements UserService {
         user.setEmail(userDetails.getEmail());
         user.setAge(userDetails.getAge());
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        outboxService.enqueue(BizType.UPDATE, String.valueOf(saved.getId()), saved);
+        return saved;
     }
 
     @Override
+    @Transactional
     public void deleteById(Long id) {
+        User user = userRepository.findById(id).orElse(null);
+        if (user == null) {
+            return;
+        }
         userRepository.deleteById(id);
+        outboxService.enqueue(BizType.DELETE, String.valueOf(id), user);
     }
 
     @Override

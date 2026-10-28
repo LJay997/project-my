@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
 /**
@@ -24,6 +26,7 @@ import javax.validation.constraints.Pattern;
 @ExcelIgnoreUnannotated
 public class UserImportExcel {
 
+    @NotBlank(message = "用户名不能为空")
     @ExcelProperty(value = "用户名", index = 0)
     @ColumnWidth(20)
     private String username;
@@ -33,6 +36,7 @@ public class UserImportExcel {
     @ColumnWidth(30)
     private String email;
 
+    @Min(value = 0, message = "年龄不能为负数")
     @ExcelProperty(value = "年龄", index = 2)
     @ColumnWidth(10)
     private Integer age;

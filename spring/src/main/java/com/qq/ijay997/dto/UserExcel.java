@@ -7,6 +7,9 @@ import com.alibaba.excel.annotation.write.style.HeadFontStyle;
 import com.alibaba.excel.annotation.write.style.HeadStyle;
 import com.alibaba.excel.enums.BooleanEnum;
 import com.alibaba.excel.enums.poi.FillPatternTypeEnum;
+import com.qq.ijay997.masking.PermissionCodes;
+import com.qq.ijay997.masking.Sensitive;
+import com.qq.ijay997.masking.SensitiveType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,10 +38,12 @@ public class UserExcel {
 
     @ExcelProperty(value = "用户名", index = 1)
     @ColumnWidth(20)
+    @Sensitive(type = SensitiveType.NAME, permission = PermissionCodes.USER_NAME_READ)
     private String username;
 
     @ExcelProperty(value = "邮箱", index = 2)
     @ColumnWidth(30)
+    @Sensitive(type = SensitiveType.EMAIL, permission = PermissionCodes.USER_EMAIL_READ)
     private String email;
 
     @ExcelProperty(value = "年龄", index = 3)

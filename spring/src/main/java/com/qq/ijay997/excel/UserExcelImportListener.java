@@ -61,11 +61,14 @@ public class UserExcelImportListener extends AnalysisEventListener<UserImportExc
                 .collect(Collectors.joining(","));
         if (!errorMessages.isEmpty()){
             result.addError(rowNumber, String.format("第 %s 行数据错误 %s", rowNumber, errorMessages));
+            // 校验不通过的行直接跳过，避免脏数据入库
+            return;
         }
 
         // 2. 入库：单行 try/catch，保证一条脏数据不阻断整个文件
+        //    文件导入为一类独立业务场景，走 importUser 以便产生 IMPORT 类型的远端消息
         try {
-            userService.save(new User(null, username, email, age));
+            userService.importUser(new User(null, username, email, age));
             result.incrementSuccess();
         } catch (Exception e) {
             log.warn("导入第 {} 行失败：{}", rowNumber, e.getMessage());

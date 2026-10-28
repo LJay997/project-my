@@ -6,14 +6,21 @@ import com.qq.ijay997.dto.UserExcel;
 import com.qq.ijay997.dto.UserImportExcel;
 import com.qq.ijay997.dto.UserStatisticsExcel;
 import com.qq.ijay997.entity.User;
+import com.qq.ijay997.masking.PermissionCodes;
+import com.qq.ijay997.masking.UserContextHolder;
+import com.qq.ijay997.masking.UserPrincipal;
 import com.qq.ijay997.service.impl.ExcelServiceImpl;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -31,6 +38,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * ExcelService 单元测试：直接验证 EasyExcel 读写的真实产物。
+ * <p>
+ * 服务实现使用字段注入，这里手工装配真实的 {@link Validator}，
+ * 以便同时覆盖导出脱敏与导入校验两条链路。
  *
  * @author ijay997
  */
@@ -40,13 +50,27 @@ class ExcelServiceTest {
     @Mock
     private UserService userService;
 
-    @InjectMocks
-    private ExcelServiceImpl excelService;
+    private final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+    private final ExcelServiceImpl excelService = new ExcelServiceImpl();
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(excelService, "userService", userService);
+        ReflectionTestUtils.setField(excelService, "validator", validator);
+    }
+
+    @AfterEach
+    void tearDown() {
+        // ThreadLocal 必须清理，避免测试线程复用时权限串号
+        UserContextHolder.clear();
+    }
 
     @Test
     @DisplayName("导出：生成包含两个 Sheet 的 xlsx，数据与统计正确")
     void shouldExportUsersWithTwoSheets() {
-        // given
+        // given：具备全部敏感数据权限，导出结果为明文
+        UserContextHolder.set(principal(PermissionCodes.ALL));
         List<User> users = Arrays.asList(
                 new User(1L, "张三", "zhangsan@example.com", 16),
                 new User(2L, "李四", "lisi@example.com", 30),
@@ -89,6 +113,32 @@ class ExcelServiceTest {
     }
 
     @Test
+    @DisplayName("导出：无敏感权限时用户名与邮箱写出脱敏值")
+    void shouldMaskSensitiveColumnsWithoutPermission() {
+        // given：未设置上下文，按匿名用户（无权限）处理
+        List<User> users = Collections.singletonList(
+                new User(1L, "张三", "zhangsan@example.com", 16));
+        when(userService.findAll()).thenReturn(users);
+
+        // when
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        excelService.exportUsers(output);
+
+        List<UserExcel> rows = EasyExcel.read(new ByteArrayInputStream(output.toByteArray()))
+                .head(UserExcel.class)
+                .sheet(0)
+                .doReadSync();
+
+        // then
+        assertEquals(1, rows.size());
+        assertAll(
+                () -> assertEquals("张*", rows.get(0).getUsername()),
+                () -> assertEquals("z***@example.com", rows.get(0).getEmail()),
+                () -> assertEquals("青少年", rows.get(0).getAgeGroup())
+        );
+    }
+
+    @Test
     @DisplayName("模板：只输出表头，不含数据行")
     void shouldExportTemplateWithHeadersOnly() {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
@@ -113,7 +163,7 @@ class ExcelServiceTest {
                 new UserImportExcel("王五", "wangwu@example.com", -1)
         );
         byte[] excelBytes = toExcelBytes(rows);
-        when(userService.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userService.importUser(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
         ExcelImportResult result = excelService.importUsers(new ByteArrayInputStream(excelBytes));
@@ -126,9 +176,9 @@ class ExcelServiceTest {
                 () -> assertEquals(3, result.getErrors().size())
         );
         assertTrue(result.getErrors().get(0).contains("用户名不能为空"));
-        assertTrue(result.getErrors().get(1).contains("邮箱格式不正确"));
+        assertTrue(result.getErrors().get(1).contains("邮箱格式错误"));
         assertTrue(result.getErrors().get(2).contains("年龄不能为负数"));
-        verify(userService, times(1)).save(any(User.class));
+        verify(userService, times(1)).importUser(any(User.class));
     }
 
     @Test
@@ -147,7 +197,7 @@ class ExcelServiceTest {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         EasyExcel.write(output).head(head).sheet("用户导入模板").doWrite(data);
 
-        when(userService.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(userService.importUser(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ExcelImportResult result = excelService.importUsers(
                 new ByteArrayInputStream(output.toByteArray()));
@@ -159,7 +209,7 @@ class ExcelServiceTest {
                 () -> assertTrue(result.getErrors().get(0).contains("数据格式无法转换"),
                         "应提示具体单元格类型转换失败")
         );
-        verify(userService, times(1)).save(any(User.class));
+        verify(userService, times(1)).importUser(any(User.class));
     }
 
     /**
@@ -171,5 +221,9 @@ class ExcelServiceTest {
                 .sheet("用户导入模板")
                 .doWrite(rows);
         return output.toByteArray();
+    }
+
+    private UserPrincipal principal(java.util.Set<String> permissions) {
+        return new UserPrincipal("1001", "mock-1001", "ADMIN", permissions);
     }
 }

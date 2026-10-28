@@ -8,6 +8,7 @@ import com.qq.ijay997.dto.UserExcel;
 import com.qq.ijay997.dto.UserImportExcel;
 import com.qq.ijay997.dto.UserStatisticsExcel;
 import com.qq.ijay997.entity.User;
+import com.qq.ijay997.excel.MaskingExcelWriter;
 import com.qq.ijay997.excel.UserExcelImportListener;
 import com.qq.ijay997.service.ExcelService;
 import com.qq.ijay997.service.UserService;
@@ -59,8 +60,8 @@ public class ExcelServiceImpl implements ExcelService {
         // Sheet 2：按年龄段统计
         List<UserStatisticsExcel> statistics = buildStatistics(rows);
 
-        // 多个 Sheet 共用一次写入会话，避免多次打开文件
-        ExcelWriter writer = EasyExcel.write(outputStream).build();
+        // 多个 Sheet 共用一次写入会话；脱敏由 MaskingExcelWriter 挂载的处理器在单元格级完成
+        ExcelWriter writer = MaskingExcelWriter.builder(outputStream).build();
         try {
             WriteSheet userSheet = EasyExcel.writerSheet(0, USER_SHEET_NAME)
                     .head(UserExcel.class)
