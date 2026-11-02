@@ -3,6 +3,10 @@ package com.qq.ijay997.masking;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 文件导出场景的敏感数据处理器。
@@ -16,6 +20,8 @@ import java.lang.reflect.Field;
  */
 @Component
 public class SensitiveDataMasker {
+
+    private final ConcurrentMap<Class<?>, List<Field>> sensitiveFieldCache = new ConcurrentHashMap<>();
 
     /**
      * 批量处理。
@@ -41,21 +47,33 @@ public class SensitiveDataMasker {
             return;
         }
         Class<?> clazz = bean.getClass();
-        for (Field field : clazz.getDeclaredFields()) {
-            Sensitive sensitive = field.getAnnotation(Sensitive.class);
-            if (sensitive == null || field.getType() != String.class) {
-                continue;
-            }
+
+        List<Field> fields = sensitiveFieldCache.computeIfAbsent(clazz, SensitiveDataMasker::resolveSensitiveFields);
+        for (Field field : fields) {
             try {
-                field.setAccessible(true);
                 String original = (String) field.get(bean);
                 if (original != null) {
-                    field.set(bean, SensitiveValues.maskIfNeeded(sensitive, original));
+                    field.set(bean,
+                            SensitiveValues.maskIfNeeded(field.getAnnotation(Sensitive.class), original));
                 }
             } catch (IllegalAccessException e) {
                 throw new IllegalStateException(
                         "无法访问敏感字段 " + clazz.getSimpleName() + "." + field.getName(), e);
             }
         }
+    }
+
+    private static List<Field> resolveSensitiveFields(Class<?> clazz) {
+        List<Field> result = new ArrayList<>();
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.getType() != String.class) {
+                continue;
+            }
+            if (field.isAnnotationPresent(Sensitive.class)) {
+                field.setAccessible(true);
+                result.add(field);
+            }
+        }
+        return result;
     }
 }

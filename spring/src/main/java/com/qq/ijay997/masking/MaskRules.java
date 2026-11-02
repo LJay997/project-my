@@ -1,5 +1,7 @@
 package com.qq.ijay997.masking;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * 纯函数脱敏规则，供 JSON 序列化器与文件处理器共用。
  * <p>
