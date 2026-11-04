@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
 /**
  * 用户实体类
@@ -42,4 +43,15 @@ public class User {
      */
     @Column
     private Integer age;
+
+    private LocalDateTime createTime;
+
+    private LocalDateTime updateTime;
+
+    public User(Long id, String username, String email, Integer age) {
+        this.id = id;
+        this.username = username;
+        this.email = email;
+        this.age = age;
+    }
 }

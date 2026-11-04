@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +34,8 @@ public class DataInitializer implements CommandLineRunner {
 
         // 创建演示用户
         User user1 = new User(null, "张三", "zhangsan@example.com", 25);
+        user1.setUpdateTime(LocalDateTime.now());
+        user1.setCreateTime(LocalDateTime.now());
         User user2 = new User(null, "李四", "lisi@example.com", 30);
         User user3 = new User(null, "王五", "wangwu@example.com", 28);
         User user4 = new User(null, "赵六", "zhaoliu@example.com", 35);

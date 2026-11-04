@@ -45,7 +45,7 @@ public class UserServiceProviderController {
         user.setPhone(phone);
         user.setAge(age);
         user.setCreateTime(LocalDateTime.now());
-        user.setUpdateTime(LocalDateTime.now());
+//        user.setUpdateTime(LocalDateTime.now());
         userStore.put(id, user);
         return user;
     }
@@ -128,7 +128,7 @@ public class UserServiceProviderController {
         existingUser.setEmail(userDTO.getEmail());
         existingUser.setPhone(userDTO.getPhone());
         existingUser.setAge(userDTO.getAge());
-        existingUser.setUpdateTime(LocalDateTime.now());
+//        existingUser.setUpdateTime(LocalDateTime.now());
         
         return Result.success(existingUser);
     }

@@ -17,6 +17,11 @@
         <easyexcel.version>4.0.3</easyexcel.version>
         <!-- EasyExcel 4.0.3 基于 POI 5.2.5；drools-decisiontables 传递的是 5.1.0，需统一版本 -->
         <poi.version>5.2.5</poi.version>
+
+        <!-- MapStruct：编译期生成 Bean 映射实现 -->
+        <org.mapstruct.version>1.6.3</org.mapstruct.version>
+        <!-- 与注解处理器路径中的 Lombok 保持一致，JDK 21 需要 1.18.30+ -->
+        <lombok.version>1.18.46</lombok.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Starter Web -->
@@ -70,7 +75,15 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
             <optional>true</optional>
+        </dependency>
+
+        <!-- MapStruct 运行时注解；实现类由 mapstruct-processor 在编译期生成 -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${org.mapstruct.version}</version>
         </dependency>
         
         <!-- Apache Dubbo -->
@@ -185,10 +198,50 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <release>11</release>
+                    <!-- 多源参数映射及 expression 中引用参数名时需要 -->
+                    <parameters>true</parameters>
+                    <annotationProcessorPaths>
+                        <!-- 顺序不能调整：Lombok -> binding -> MapStruct -->
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok-mapstruct-binding</artifactId>
+                            <version>0.2.0</version>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${org.mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+            <!-- 显式声明 MapStruct 注解处理器生成的源码目录，确保 IDEA 识别为 Generated Sources Root -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>add-generated-sources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/annotations</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
             <!-- Maven 默认的 2.12.4 不支持 JUnit 5，需显式指定 3.x -->
             <plugin>

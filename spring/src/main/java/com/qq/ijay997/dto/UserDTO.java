@@ -1,5 +1,9 @@
 package com.qq.ijay997.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.qq.ijay997.masking.PermissionCodes;
 import com.qq.ijay997.masking.Sensitive;
 import com.qq.ijay997.masking.SensitiveType;
@@ -33,7 +37,12 @@ public class UserDTO implements Serializable {
     @Sensitive(type = SensitiveType.PHONE, permission = PermissionCodes.USER_PHONE_READ)
     private String phone;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     private Integer age;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime createTime;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updateTime;
 }
