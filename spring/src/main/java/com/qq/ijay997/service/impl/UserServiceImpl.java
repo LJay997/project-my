@@ -8,6 +8,8 @@ import com.qq.ijay997.service.OrderService;
 import com.qq.ijay997.service.UserService;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
@@ -55,6 +57,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable(value = "userCache", key = "#id", sync = true)
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
     }
@@ -65,11 +68,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "userCache", allEntries = true)
     public User save(User user) {
         return saveAndEnqueue(user, BizType.CREATE);
     }
 
     @Override
+    @CacheEvict(value = "userCache", allEntries = true)
     public User importUser(User user) {
         return saveAndEnqueue(user, BizType.IMPORT);
     }
@@ -191,6 +196,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userCache", allEntries = true)
     public User update(Long id, User userDetails) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("用户不存在，ID: " + id));
@@ -206,6 +212,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userCache", allEntries = true)
     public void deleteById(Long id) {
         User user = userRepository.findById(id).orElse(null);
         if (user == null) {

@@ -24,3 +24,10 @@ spring:
     port: 6379
     password:
     database: 0
+
+# Caffeine 本地缓存配置（Spring Cache 抽象，底层使用 Caffeine）
+# spec 说明：maximumSize 最大条目数；expireAfterWrite 写入后过期；recordStats 开启统计
+cache:
+  caffeine:
+    spec: maximumSize=1000,expireAfterWrite=10m,recordStats
+    cache-names: userCache,userListCache

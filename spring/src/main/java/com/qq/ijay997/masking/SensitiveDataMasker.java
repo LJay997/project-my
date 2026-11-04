@@ -4,7 +4,9 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -48,6 +50,7 @@ public class SensitiveDataMasker {
         }
         Class<?> clazz = bean.getClass();
 
+        // ConcurrentMap 为线程安全型，无需同步块
         List<Field> fields = sensitiveFieldCache.computeIfAbsent(clazz, SensitiveDataMasker::resolveSensitiveFields);
         for (Field field : fields) {
             try {
@@ -76,4 +79,5 @@ public class SensitiveDataMasker {
         }
         return result;
     }
+
 }

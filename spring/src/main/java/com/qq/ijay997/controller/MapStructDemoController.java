@@ -44,11 +44,11 @@ public class MapStructDemoController {
      * @param id 用户 ID
      * @return 用户 DTO；不存在时返回 404
      */
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getById(@PathVariable Long id) {
-        return userService.findById(id)
-                .map(userMapper::toDTO)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
+//    @GetMapping("/{id}")
+//    public ResponseEntity<UserDTO> getById(@PathVariable Long id) {
+//        return userService.findById(id)
+//                .map(userMapper::toDTO)
+//                .map(ResponseEntity::ok)
+//                .orElseGet(() -> ResponseEntity.notFound().build());
+//    }
 }
