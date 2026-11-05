@@ -1,4 +1,4 @@
-package com.qq.ijay997.masking;
+package com.qq.ijay997.auth;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -7,6 +7,9 @@ import java.util.Set;
 
 /**
  * 权限码常量与 mock 角色的预置权限映射。
+ * <p>
+ * 属于身份/授权模型，不属于脱敏规则：脱敏侧（{@code com.qq.ijay997.masking}）只引用这里的
+ * 权限码作为 {@code @Sensitive#permission()} 的取值，具体如何脱敏由 {@code MaskRules} 决定。
  *
  * @author ijay997
  */

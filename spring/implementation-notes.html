@@ -72,5 +72,393 @@ RemoteCallTransactionListenerTest  2  例  通过
 RemoteCallIntegrationTest     5  例  通过  (四类场景入队/正常发送/失败标记/手动重试/事务回滚一致性)
 ExcelServiceTest              5  例  通过  (导入链路改走 importUser 后仍然通过)</pre>
 <p>执行命令：<code>mvn -pl spring test -Dtest='OutboxServiceTest,RemoteCallTransactionListenerTest,RemoteCallIntegrationTest,ExcelServiceTest'</code></p>
+
+<hr>
+
+<h1>实现说明：MyBatis-Plus 集成</h1>
+<p>在 spring 模块（Spring Boot 2.7.18）中集成 MyBatis-Plus 3.5.7，提供基于 H2 内存库、离线可运行的完整 CRUD 演示，覆盖逻辑删除、乐观锁、自动填充、分页与条件构造器。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>依赖与版本</td><td>选用 <code>com.baomidou:mybatis-plus-boot-starter:3.5.7</code>：对应 Spring Boot 2.x（Boot 3 才用 boot3-starter），与既有 BOM（spring-boot-dependencies 2.7.18）对齐，避免引入 Boot 3 专有 starter。</td></tr>
+    <tr><td>2</td><td>接入方式</td><td>直接复用工程已有的 H2 内存库 <code>jdbc:h2:mem:testdb</code>（application.properties 已配置 DataSource），不新增外部数据源。</td></tr>
+    <tr><td>3</td><td>与 JPA 共存</td><td>MyBatis-Plus 与既有 JPA/Hibernate 共用同一 DataSource、各自独立 ORM；仅对 <code>mp_product</code> 表走 MyBatis-Plus，不触碰 JPA 实体。</td></tr>
+    <tr><td>4</td><td>建表方式</td><td>用 <code>schema.sql</code> 自动建表并设置 <code>spring.jpa.defer-datasource-initialization: true</code>，确保 SQL 脚本在 Hibernate <code>create-drop</code> 之后执行，避免表被误删、保证离线可测。</td></tr>
+    <tr><td>5</td><td>演示特性选取</td><td>实体同时覆盖雪花主键（ASSIGN_ID）、逻辑删除（@TableLogic）、乐观锁（@Version）、字段自动填充（MetaObjectHandler）两类以上，满足示例要求。</td></tr>
+    <tr><td>6</td><td>包结构</td><td>新增独立包 <code>com.qq.ijay997.mp.*</code> 收敛 MP 相关代码，与既有 <code>entity/repository/service</code>（JPA）命名空间隔离，避免混淆。</td></tr>
+    <tr><td>7</td><td>Service 层</td><td>Service 继承 <code>IService&lt;Product&gt;</code>、Impl 继承 <code>ServiceImpl&lt;ProductMapper, Product&gt;</code>，复用 MP 通用 CRUD，分页/条件查询用 <code>lambdaQuery()</code> 演示。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span>逻辑删除字段 <code>deleted</code> 的默认值按字段初始化（<code>private Integer deleted = 0;</code>）而非通过 <code>MetaObjectHandler</code> 填充：<code>strictInsertFill</code> 仅对标注 <code>@TableField(fill=...)</code> 的字段生效，<code>deleted</code> 未标 fill，故改为实体初始值以确保插入时显式写入 0。</li>
+    <li><span class="tag deviation">偏差</span>演示表名用 <code>mp_product</code>（前缀 mp_），与既有 JPA 表 <code>t_user</code>/<code>t_remote_message</code> 命名风格不同，用于一眼区分 MyBatis-Plus 演示数据。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>新增 MySQL/独立数据源演示</td><td>需要外部依赖、无法离线运行测试；复用 H2 内存库最省、最稳定。</td></tr>
+    <tr><td>把 JPA 的 <code>User</code> 实体改为 MP 实体</td><td>会破坏现有 JPA 仓储、脱敏与 Outbox 两套链路，向后兼容要求不允许。</td></tr>
+    <tr><td>用 XML Mapper 演示 CRUD</td><td>示例体量更大；<code>BaseMapper</code> + <code>lambdaQuery()</code> 已能覆盖全部演示点，注释清晰即可。</td></tr>
+    <tr><td>不引入 <code>defer-datasource-initialization</code></td><td>存在 Hibernate <code>create-drop</code> 与 <code>schema.sql</code> 顺序不一致的隐患，显式延后更稳妥。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>生产环境若切换为 MySQL/PostgreSQL，<code>PaginationInnerInterceptor(DbType.H2)</code> 需同步替换方言，且 <code>schema.sql</code> 需按目标库改写。</li>
+    <li><span class="tag open">待确认</span>雪花主键（ASSIGN_ID）是否为期望的主键策略；若对主键连续性有要求，可改为 AUTO（数据库自增）。</li>
+    <li><span class="tag open">待确认</span>是否需要将 MyBatis-Plus 纳入既有敏感字段脱敏链路（当前演示实体不含敏感字段，脱敏机制未受影响）。</li>
+</ul>
+
+<h2>五、验证</h2>
+<p>新增测试全部通过（共 8 例）：</p>
+<pre>ProductServiceTest     6 例 通过  (插入自动填充 / 查询更新 / 乐观锁过期失败 / 逻辑删除 / 条件构造器 / 分页)
+ProductControllerTest   2 例 通过  (新增+查询 / 分页接口)</pre>
+<p>执行命令：<code>mvn -pl spring test -Dtest='ProductServiceTest,ProductControllerTest'</code></p>
+<p>完整套件 <code>mvn -pl spring test</code> 中，本次新增用例通过，但存在 16 例<strong>既有的、与本次改动无关</strong>的失败/错误，详见「六、完整套件既有失败说明」。</p>
+
+<h2>六、完整套件既有失败说明（非本次引入）</h2>
+<table>
+    <tr><th>用例</th><th>现象</th><th>根因（既有问题）</th></tr>
+    <tr><td>UserControllerTest（10 例）</td><td>Failed to load ApplicationContext</td><td><code>@WebMvcTest(UserController.class)</code> 切片不加载 <code>BloomFilterConfig</code>（非 Controller），而 Controller 对其 <code>@Autowired</code>，缺 Bean。</td></tr>
+    <tr><td>DubboServiceTest（3 例）</td><td>No such any registry to reference</td><td>Dubbo 消费者测试未配置注册中心（未启动 Nacos/Zookeeper）。</td></tr>
+    <tr><td>SpringDemoApplicationTests.testFindByAgeRange</td><td>expected &lt;3&gt; but was &lt;7&gt;</td><td>H2 共享上下文 + <code>DataInitializer</code> 预置 5 个用户未清理，计数断言受跨测试数据污染。</td></tr>
+    <tr><td>UserControllerIntegrationTest（2 例）</td><td>expected &lt;2&gt; but was &lt;9&gt;</td><td>同上，共享 H2 内 <code>t_user</code> 数据污染导致条数断言失败。</td></tr>
+</table>
+<p>上述用例均位于本次未改动的文件（UserControllerTest / DubboServiceTest / SpringDemoApplicationTests / UserControllerIntegrationTest），根因皆与 MyBatis-Plus 集成无关。</p>
+
+<hr>
+
+<h1>实现说明：MyBatis-Plus 关联查询与 level 字段</h1>
+<p>在既有 <code>com.qq.ijay997.mp</code> 模块上新增商品分类实体 <code>Category</code>（表 <code>mp_category</code>），与 <code>mp_product</code> 通过外键 <code>category_id</code> 关联，并用自定义 SQL（<code>@Select</code>）实现商品-分类关联查询；同时给 <code>Product</code> 与 <code>Category</code> 均新增 <code>level</code> 字段。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>关联目标实体</td><td>新增「商品分类」<code>Category</code>（表 <code>mp_category</code>），业务语义清晰，<code>category_id</code> 作为 <code>mp_product</code> 的外键。</td></tr>
+    <tr><td>2</td><td>关联方式</td><td>MyBatis-Plus 不支持 JOIN，故在 <code>CategoryMapper</code> 中用 <code>@Select</code> 手写 <code>LEFT JOIN</code>，返回 <code>ProductCategoryVO</code>。</td></tr>
+    <tr><td>3</td><td>结果映射</td><td>SQL 列别名用下划线（<code>product_id</code> 等），复用全局 <code>map-underscore-to-camel-case: true</code> 自动映射到 VO 驼峰属性，无需手写 ResultMap。</td></tr>
+    <tr><td>4</td><td>两个查询方向</td><td>① 分类侧 <code>selectProductsByCategoryName</code>（按分类名查商品）；② 商品侧 <code>selectProductDetail</code>（按商品 ID 查详情带分类），满足双向关联查询。</td></tr>
+    <tr><td>5</td><td>分页配合</td><td>增加 <code>selectProductsByCategoryNamePage(Page, name)</code>，首个参数用 <code>Page</code>，由 <code>PaginationInnerInterceptor</code> 自动生成 count 与 limit，验证 JOIN 与分页共存。</td></tr>
+    <tr><td>6</td><td>level 类型</td><td>两实体均用 <code>Integer</code>：等级/层级是数值语义，便于 BETWEEN/ORDER BY，支持 null（未评级/未分层）且占用小。</td></tr>
+    <tr><td>7</td><td>逻辑删除过滤</td><td>自定义 SQL 不走 MP 逻辑删除自动拼装，故手写 SQL 中显式带 <code>p.deleted = 0</code>。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span><code>Category</code> 未加 <code>@TableLogic</code>（未做逻辑删除）：分类作为外键被引用，物理删除/逻辑删除会引入更多一致性处理，演示聚焦关联查询，保持 Category 表最简。</li>
+    <li><span class="tag deviation">偏差</span>两个方向查询均用 <code>LEFT JOIN</code>（即使分类侧查询语义上更像 INNER JOIN）：保证分类信息缺失时商品仍能返回、不丢失行，符合 VO 的可空字段语义。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>XML Mapper + resultMap</td><td>需额外 XML 文件与 resultMap 配置；<code>@Select</code> + 下划线自动映射更简洁，且本项目 mapper-locations 下尚无 XML。</td></tr>
+    <tr><td>用实体嵌套（<code>@TableField(exist=false)</code> Category 对象）做关联</td><td>需多次查询或依赖 MP 不支持的联表，无法单条 SQL 返回 VO，性能与语义均不如手写 JOIN。</td></tr>
+    <tr><td>通过 Service 层两次查询拼装 VO</td><td>N+1 查询、代码冗长；手写单条 JOIN SQL 更清晰高效。</td></tr>
+    <tr><td>新建独立关联 Mapper（如 ProductCategoryMapper）</td><td>关联查询少（3 个），放进 CategoryMapper 即可，避免文件碎片化；后续增多再独立。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>商品挂多个分类或多级分类树的场景是否在计划内：当前是单 <code>category_id</code> 一对多，仅支持一层分类；若需多级分类需引入 <code>parent_id</code> 树结构或中间关联表。</li>
+    <li><span class="tag open">待确认</span>关联删除策略：<code>Category</code> 被商品引用时是否允许删除，是否需要在删除分类时对商品做 <code>category_id</code> 置空或级联处理。</li>
+    <li><span class="tag open">待确认</span>若后续关联 VO 需暴露敏感字段，将重新评估是否接入 <code>@Sensitive</code> 脱敏链路（当前 VO 无敏感字段，未接入）。</li>
+</ul>
+
+<h2>五、验证</h2>
+<p>新增 <code>CategoryServiceTest</code> 4 例全部通过；MP 模块既有 8 例继续通过（共 12 例）：</p>
+<pre>ProductServiceTest    6 例 通过  (既有，未改动)
+ProductControllerTest  2 例 通过  (既有，未改动)
+CategoryServiceTest    4 例 通过  (分类 CRUD & level / JOIN 列表 / 商品详情带分类 / JOIN 分页)</pre>
+<p>执行命令：<code>mvn -pl spring test -Dtest='ProductServiceTest,ProductControllerTest,CategoryServiceTest'</code></p>
+<p>完整套件 <code>mvn -pl spring test</code>：共 93 例，本次新增 4 例通过；既有 16 例失败/错误（3 Failures + 13 Errors）仍存在、与本次改动无关，根因同上一节「完整套件既有失败说明」。</p>
+
+<hr>
+
+<h1>实现说明：MyBatis-Plus 演示种子数据</h1>
+<p>在 <code>schema.sql</code> 中追加 4 个分类、11 个商品的幂等种子数据，便于启动后直接 curl 演示关联查询与分页/条件过滤。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>幂等写法</td><td>选用 H2 原生 <code>MERGE INTO ... KEY(id)</code>：以主键为匹配键，存在则更新、不存在则插入，单条语句原子完成，避免「先查再插」的竞态；对比 <code>INSERT ... WHERE NOT EXISTS</code> 更简洁。</td></tr>
+    <tr><td>2</td><td>固定主键</td><td>分类 <code>1~4</code>、商品 <code>101~111</code>：与 MyBatis-Plus 雪花主键（19 位）不冲突，且便于外键引用与幂等匹配。</td></tr>
+    <tr><td>3</td><td>未分类场景</td><td>保留 1 条商品（<code>category_id = NULL</code>），用于验证左连接/未分类语义。</td></tr>
+    <tr><td>4</td><td>种子命名避让</td><td>名称刻意避开测试关键字「苹果 / 香蕉 / 苹果派」，避免污染 <code>ProductServiceTest.testConditionQuery</code> 的 <code>like('苹果')</code> 计数断言。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span>种子数据直接写进 <code>schema.sql</code>（而非独立 <code>data.sql</code>）：用户明确指定该位置；且 <code>schema.sql</code> 与建表同源，天然保证表先于数据存在。</li>
+    <li><span class="tag deviation">偏差</span>种子数据与测试共用同一脚本：未为测试单独做清库/隔离，而是通过「固定主键 + MERGE 幂等 + 命名避让」让断言不冲突。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td><code>data.sql</code> 单独放种子</td><td>与用户指定位置冲突；且 H2 内存库下 <code>schema.sql</code>/<code>data.sql</code> 顺序与 <code>defer-datasource-initialization</code> 的耦合更多一层心智负担。</td></tr>
+    <tr><td><code>INSERT ... SELECT WHERE NOT EXISTS</code></td><td>每行需写存在性判断，冗长；<code>MERGE</code> 原生 upsert 更简洁、意图更清晰。</td></tr>
+    <tr><td>测试类里单独准备种子并按需清理</td><td>无法满足「应用启动即有演示数据」的目标；且引入测试与生产数据双份维护成本。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>固定主键 1~111 是否与未来人工/脚本写入的数据冲突风险：目前雪花主键位数不同、风险低，但若改变主键策略（如 AUTO 自增）需要重新评估。</li>
+    <li><span class="tag open">待确认</span>种子数据若需经常调整，是否应抽离为独立的版本化 SQL 或 Flyway/Liquibase 迁移（当前项目未引入迁移框架）。</li>
+</ul>
+
+<h2>五、验证</h2>
+<p>追加种子数据后，<code>mvn -pl spring test -Dtest='ProductServiceTest,ProductControllerTest,CategoryServiceTest'</code> 仍 12/12 通过，无条数断言被污染、无需调整测试期望值。</p>
+
+<hr>
+
+<h1>实现说明：LevelInterceptor 编译修复与审查</h1>
+<p><code>com.qq.ijay997.mp.interceptor.LevelInterceptor</code> 是用户手写的数据权限拦截器：从 <code>UserLevelHolder</code>（ThreadLocal）取当前用户 <code>level</code> 阈值，对标注 <code>@Level</code> 的 Mapper 查询追加 <code>alias.level &lt;= threshold</code> 条件。本次仅修复编译错误与一处别名解析缺陷。</p>
+
+<h2>一、设计决策（Design Decisions / 对意图的假设）</h2>
+<table>
+    <tr><th>#</th><th>假设</th><th>依据</th></tr>
+    <tr><td>1</td><td>这是一个"等级/数据权限过滤"拦截器，不是通用 SQL 改写器</td><td>阈值来自 <code>UserLevelHolder</code>，条件为 <code>level &lt;= threshold</code>，注解名 <code>@Level</code></td></tr>
+    <tr><td>2</td><td>保留 <code>InnerInterceptor</code> 实现，不改为 <code>@Intercepts</code>/<code>Plugin.wrap</code></td><td>用户已按 MP 的 <code>InnerInterceptor</code> 实现；这样能与 <code>MybatisPlusInterceptor</code> 内的其它拦截器统一排序</td></tr>
+    <tr><td>3</td><td>只修编译错误 + 最小缺陷，不扩展功能</td><td>未处理嵌套子查询、写操作等，保持原意图</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span><code>SelectBody</code> 在 jsqlparser 4.9 已移除 → 方法参数类型改为 <code>Select</code>（抽象基类，<code>PlainSelect</code>/<code>SetOperationList</code> 均继承它）。这是随依赖版本修正类型，不是换实现。</li>
+    <li><span class="tag deviation">偏差</span><code>BoundSql</code> 没有 <code>setSql(String)</code> → 改用 MP 的 <code>PluginUtils.mpBoundSql(boundSql).sql(newSql)</code>（与分页拦截器同一改写机制）。</li>
+    <li><span class="tag deviation">偏差</span>jsqlparser 4.9 的 <code>Column</code> 无 <code>(String, String)</code> 构造器 → 改为 <code>new Column(new Table(alias), column)</code>。</li>
+    <li><span class="tag deviation">偏差</span><code>rewriteSql</code> 抛出 <code>SQLException</code> 但未声明 → 补 <code>throws SQLException</code>（调用方 <code>beforeQuery</code> 已声明）。</li>
+    <li><span class="tag deviation">偏差</span><code>@AliasFor</code> 只被 Spring 的注解工具处理，JDK 的 <code>method.getAnnotation()</code> 不生效：<code>@Level("p")</code> 实际只设置 <code>value</code>，<code>tableAlias()</code> 仍是默认 <code>"a"</code>，会生成非法列 <code>a.level</code>。已在拦截器内加 <code>resolveAlias()</code> 兜底。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>改 <code>CategoryMapper</code> 为 <code>@Level(tableAlias="p")</code></td><td>会把修复散落到调用方；放在拦截器内统一解析更集中，且让 <code>@Level("p")</code> 的短写法如作者预期工作。</td></tr>
+    <tr><td>改为 MyBatis <code>@Intercepts</code> + <code>Plugin.wrap</code></td><td>与既有 <code>MybatisPlusInterceptor</code>（乐观锁 + 分页）顺序协调更麻烦；MP 推荐用 <code>InnerInterceptor</code>。</td></tr>
+    <tr><td>拦截所有 SELECT（无注解也给全表加条件）</td><td>过于激进，会误伤非业务表；维持"仅注解方法生效"。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>嵌套子查询（<code>WHERE ... IN (SELECT ...)</code>、<code>EXISTS</code>、JOIN 子查询）未被递归改写，类注释宣称"子查询嵌套 WHERE"能力有所夸大；如业务需要，需扩展 <code>processPlainSelect</code>。</li>
+    <li><span class="tag open">待确认</span><code>resolveMapperMethod</code> 只按方法名匹配，Mapper 存在同名重载时可能取错方法；如需支持应按参数类型匹配。</li>
+    <li><span class="tag open">待确认</span><code>ConcurrentHashMap.computeIfAbsent</code> 不缓存 <code>null</code>，类加载失败时会每次重算（性能小问题，不影响正确性）。</li>
+    <li><span class="tag open">待确认</span>拦截器已在 <code>MybatisPlusConfig</code> 注册（第 28 行、位于最前），但全项目没有任何地方调用 <code>UserLevelHolder.set()</code>，当前处于"休眠"状态；需明确接入点（鉴权后 set、请求结束 finally remove）。</li>
+    <li><span class="tag open">待确认</span>只过滤 SELECT，UPDATE/DELETE 未施加数据权限；是否要求写操作也受 level 约束需产品确认。</li>
+</ul>
+
+<h2>五、验证</h2>
+<p><code>mvn -pl spring compile</code>：BUILD SUCCESS。<code>mvn -pl spring test -Dtest='ProductServiceTest,ProductControllerTest,CategoryServiceTest'</code>：12/12 通过。</p>
+
+<hr>
+
+<h1>实现说明：子查询关联查询（高于分类均价）</h1>
+<p>新增「价格高于所属分类商品均价」的关联子查询，配套种子数据与 REST 接口，并显式标注 <code>@Level("p")</code> 以验证 <code>LevelInterceptor</code> 的实际作用范围。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>查询场景</td><td>选「<code>p.price &gt; (SELECT AVG(...) WHERE p2.category_id = p.category_id)</code>」关联子查询：既能体现关联含义，又能展示子查询。</td></tr>
+    <tr><td>2</td><td>返回值</td><td>复用 <code>ProductCategoryVO</code> 并新增可空字段 <code>categoryAvgPrice</code>，避免新建近乎重复的 VO；其它关联查询该字段为 <code>null</code>。</td></tr>
+    <tr><td>3</td><td>种子数据</td><td>新增分类 5「智能穿戴」+ 商品 112/113/114（1999/199/9999）。9999 拉高全量均价，制造「均价 vs 单价」差异，并让权限穿透可被观测。</td></tr>
+    <tr><td>4</td><td>注解</td><td>方法标 <code>@Level("p")</code>，用于演示拦截器对外层查询的改写；固定主键 112~114 不与既有 1~111 冲突。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span>复用共享 VO 并追加可空字段，而非新建专用 VO：优点是少一个类、JSON 兼容；代价是既有接口会多出一个 <code>categoryAvgPrice: null</code> 字段。</li>
+    <li><span class="tag deviation">偏差</span>子查询里的 <code>p2/p3</code> 表<b>不受</b> <code>LevelInterceptor</code> 约束（拦截器只改写外层 PlainSelect），构成权限穿透；本次仅记录局限，未扩展拦截器。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>派生表 <code>JOIN (SELECT category_id, AVG(price) ... GROUP BY) a</code></td><td>只需算一次 avg，但不符合需求示例的关联子查询写法，且演示价值较低；当前数据量下重复计算可忽略。</td></tr>
+    <tr><td>新建 <code>AboveAvgProductVO</code></td><td>与 <code>ProductCategoryVO</code> 字段几乎重复；复用更省代码。</td></tr>
+    <tr><td>测试中不设置 <code>UserLevelHolder</code></td><td>无法验证「外层过滤生效、子查询未被改写」这一关键结论；用 try/finally 清理 ThreadLocal 后风险可控。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>子查询权限穿透是否需要修复：可扩展 <code>LevelInterceptor</code> 递归处理 <code>SubSelect</code>/<code>EXISTS</code>，或在业务 SQL 内显式加等级条件。</li>
+    <li><span class="tag open">待确认</span>avg 在 SELECT 与 WHERE 中计算两次，数据量大时应改为派生表或窗口函数。</li>
+    <li><span class="tag open">待确认</span>分类表（<code>LEFT JOIN c</code>）是否也应受 level 过滤，当前未处理。</li>
+</ul>
+
+<h2>五、验证</h2>
+<p><code>mvn -pl spring test -Dtest='ProductServiceTest,ProductControllerTest,CategoryServiceTest,SubqueryQueryTest'</code>：14/14 通过（新增 2 例：子查询正确性 + 拦截器外层/子查询差异）。</p>
+<hr>
+
+<h1>实现说明：身份上下文归并 + LevelInterceptor 职责拆分（阶段 1）</h1>
+<p>本次为纯重构：新建 <code>com.qq.ijay997.auth</code> 身份包，把用户身份/登录上下文从 <code>masking</code>、<code>config</code> 迁出；将 <code>UserLevelHolder</code> 合并进 <code>UserContextHolder</code>，使全项目只保留一个身份 ThreadLocal；把 <code>LevelInterceptor</code> 的"条件建模 + SQL 改写"下沉到 <code>LevelConditionProvider</code>。不扩展子查询递归、不覆盖 UPDATE/DELETE、不新增 <code>${}</code> 片段通道。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>包边界划分</td><td><code>auth</code> 承载"身份与授权模型"：<code>UserPrincipal</code>（用户身份 + 等级阈值）、<code>UserContextHolder</code>（请求级身份上下文）、<code>PermissionCodes</code>（权限码与角色映射）、<code>MockUserContextFilter</code>（HTTP → 身份适配）。<code>masking</code> 只保留"怎么脱敏"：<code>Sensitive</code>、<code>SensitiveType</code>、<code>MaskRules</code>、<code>SensitiveValues</code>、<code>SensitiveJsonSerializer</code>。</td></tr>
+    <tr><td>2</td><td>PermissionCodes 归属</td><td>它定义"谁能看什么"的权限词表与角色映射，属于授权模型；<code>@Sensitive</code> 只是引用其中的权限码。因此迁入 <code>auth</code>，脱敏规则仍留在 <code>masking</code>。</td></tr>
+    <tr><td>3</td><td>MockUserContextFilter 归属</td><td>其唯一职责是把 HTTP 请求头转换成 <code>UserPrincipal</code> 并写入上下文，属于身份基础设施；且它不包含任何脱敏规则，故从 <code>config</code> 迁入 <code>auth</code>。</td></tr>
+    <tr><td>4</td><td>ThreadLocal 合并</td><td><code>level</code> 作为 <code>UserPrincipal</code> 的字段，由唯一 ThreadLocal（<code>UserContextHolder</code>）承载；<code>getLevel()</code> 在无上下文时返回 <code>null</code>；<code>setLevel()</code> 通过不可变副本替换主体。删除 <code>com.qq.ijay997.mp.UserLevelHolder</code>，避免两个 ThreadLocal 清理时机不一致。</td></tr>
+    <tr><td>5</td><td>休眠语义</td><td><code>MockUserContextFilter</code> 不设置 level；<code>clear()</code>/<code>remove()</code> 后 <code>getLevel()</code> 必为 <code>null</code>，拦截器直接 return，不追加任何条件，与重构前完全一致。</td></tr>
+    <tr><td>6</td><td>Provider 职责边界</td><td><code>LevelCondition</code> 只做值对象与标识符白名单校验；<code>LevelConditionProvider</code> 只做"注解 → 条件对象 → AST 改写"；<code>LevelInterceptor</code> 只做"读注解、读上下文、委托、写回 BoundSql"。</td></tr>
+    <tr><td>7</td><td>改写等价性</td><td>Provider 逐行搬运原有 JSqlParser 改写逻辑（WHERE 为空 / OR 加括号 / 普通 AND），并用 <code>LevelConditionProviderTest</code> 锁定三组黄金字符串。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span><code>@Level.value()</code> 的默认值由 <code>""</code> 改为 <code>"a"</code>：它与 <code>tableAlias()</code> 通过 <code>@AliasFor</code> 互为镜像，Spring 要求两者默认值相同，否则注解合成时抛出 <code>AnnotationConfigurationException</code>。该问题在迁移中由测试暴露；修正后别名解析结果不变。</li>
+    <li><span class="tag deviation">偏差</span><code>UserPrincipal#getLevel()</code> 加了 <code>@JsonIgnore</code>：<code>/api/demo/masking/me</code> 直接序列化 <code>UserPrincipal</code>，若不加会多出 <code>"level": null</code> 字段。为保持既有响应契约不变而隐藏该属性。</li>
+    <li><span class="tag deviation">偏差</span><code>LevelCondition</code> 对别名/列名做白名单校验（非法标识符抛 <code>IllegalArgumentException</code>）。正常注解值行为不变；只有错误配置从"生成非法 SQL 后由数据库报错"提前为"构造条件时快速失败"。</li>
+    <li><span class="tag deviation">偏差</span>修正 <code>Level</code> 的 Javadoc：原文称"UNION 的每个分支都会被单独追加权限条件"，与实际实现（非 PlainSelect 顶层不改写）不符，已改为如实描述局限。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>保留 <code>UserLevelHolder</code> 与 <code>UserContextHolder</code> 两个 ThreadLocal</td><td>两套清理点容易遗漏其一，导致线程池复用时权限/等级串号；合并为单一上下文可从根上消除。</td></tr>
+    <tr><td><code>level</code> 放在 <code>UserContextHolder</code> 的第二个静态字段</td><td>仍是同一个 ThreadLocal 实例的两个值，需额外维护成对写入；放进不可变 <code>UserPrincipal</code> 更符合"身份即上下文"的语义。</td></tr>
+    <tr><td>方案 B：Service 传服务端生成的 <code>${}</code> 片段</td><td>本次明确不做。它新增 SQL 文本注入通道，且 <code>${}</code> 在 <code>getBoundSql()</code> 阶段已展开，拦截器无法补参；留待后续单独评审。</td></tr>
+    <tr><td>方案 C：全面改用 <code>QueryWrapper</code></td><td>MP 不支持 JOIN，现有 <code>CategoryMapper</code> 的 JOIN 与关联子查询无法表达；改动与测试破坏面最大。</td></tr>
+    <tr><td><code>@SelectProvider</code> 生成整段 SQL</td><td>与 B 收益重叠但迁移成本更高，仅在动态 SQL 大量出现时才值得。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">已知局限</span>子查询不递归改写：<code>@Level("p")</code> 只作用于外层 PlainSelect，<code>p2/p3</code> 等子查询表仍可被权限穿透（见 <code>SubqueryQueryTest</code> 的断言）。</li>
+    <li><span class="tag open">已知局限</span>不覆盖 UPDATE/DELETE：只有 <code>beforeQuery</code> 改写，写操作无数据权限约束。</li>
+    <li><span class="tag open">已知局限</span>无编程式片段通道：未提供非 <code>@Level</code> 查询的 <code>${}</code> 片段入口，此类查询需显式标注 <code>@Level</code>。</li>
+    <li><span class="tag open">待确认</span>生产环境由谁调用 <code>UserContextHolder.setLevel()</code>：当前仅测试与演示手动设置，需在认证流程中接入并在请求 finally 中 <code>clear()</code>。</li>
+</ul>
+
+<h2>五、包迁移对照表</h2>
+<table>
+    <tr><th>类</th><th>旧路径</th><th>新路径</th></tr>
+    <tr><td><code>UserPrincipal</code></td><td><code>com.qq.ijay997.masking</code></td><td><code>com.qq.ijay997.auth</code></td></tr>
+    <tr><td><code>UserContextHolder</code></td><td><code>com.qq.ijay997.masking</code></td><td><code>com.qq.ijay997.auth</code></td></tr>
+    <tr><td><code>PermissionCodes</code></td><td><code>com.qq.ijay997.masking</code></td><td><code>com.qq.ijay997.auth</code></td></tr>
+    <tr><td><code>MockUserContextFilter</code></td><td><code>com.qq.ijay997.config</code></td><td><code>com.qq.ijay997.auth</code></td></tr>
+    <tr><td>等级阈值 ThreadLocal</td><td><code>com.qq.ijay997.mp.UserLevelHolder</code></td><td>合并进 <code>UserContextHolder#getLevel/setLevel</code>（已删除旧类）</td></tr>
+</table>
+
+<h2>六、验证</h2>
+<pre>mvn -pl spring compile                                      通过
+mvn -pl spring test -Dtest='ProductServiceTest,ProductControllerTest,CategoryServiceTest,SubqueryQueryTest'
+                                                            14/14 通过（6 + 2 + 4 + 2）
+LevelConditionProviderTest                                  8/8 通过（含三组改写黄金字符串）
+脱敏链路：SensitiveDataMaskerTest / SensitiveJsonSerializerTest / MaskRulesTest /
+          ExcelServiceTest / MaskingExportServiceTest / MaskingDemoControllerTest / ExcelControllerTest
+                                                            39/39 通过</pre>
+<p>仓库内其它 16 例既有失败（Dubbo 无注册中心、UserControllerTest 缺 <code>BloomFilterConfig</code>、数据污染断言）与本任务无关，未改动。</p>
+<hr>
+
+<h1>实现说明：X-Level 请求头（HTTP 模拟数据权限）</h1>
+<p>在 <code>MockUserContextFilter</code> 中解析 <code>X-Level</code>，写入 <code>UserPrincipal#level</code>，使 HTTP 请求也能驱动 <code>LevelInterceptor</code>；非法值一律降级为"未设置"，保证向后兼容与不返回 500。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>解析位置</td><td>放在身份适配层 <code>MockUserContextFilter</code>，与 <code>X-User-Id</code> / <code>X-Role</code> / <code>X-Permissions</code> 同一处解析，随后经 5 参构造写入 <code>UserPrincipal</code>，不新增第二个 ThreadLocal。</td></tr>
+    <tr><td>2</td><td>非法值策略</td><td>缺省、空白、非数字（含 <code>4.5</code>、溢出 int）、负数统一返回 <code>null</code>：拦截器保持休眠、请求返回 200。理由是数据权限阈值属于可选的调试维度，脏 header 不应让整个请求失败，优先向后兼容。</td></tr>
+    <tr><td>3</td><td>与权限码解耦</td><td><code>X-Level</code> 只写入 <code>level</code>；<code>X-Permissions</code> 覆盖角色预置权限的逻辑<b>完全不动</b>，两者互不影响。</td></tr>
+    <tr><td>4</td><td>生效范围</td><td>只有标注 <code>@Level</code> 的 Mapper 查询会被改写；未标注的查询即使带 <code>X-Level</code> 也不受影响，这是既有实现边界，不在本次扩展。</td></tr>
+    <tr><td>5</td><td>测试组织</td><td>新增 <code>LevelHeaderIntegrationTest</code>，而不是并入 <code>SubqueryQueryTest</code>：后者验证拦截器本身（编程式 <code>setLevel</code>），新类验证"HTTP → Filter → 上下文 → 拦截器"的适配链路，职责分离。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span>非法值选择"静默降级为未设置"而非返回 400：400 需要额外的错误响应契约与调用方改造，且会让"忘带/写错调试头"的请求整体失败；当前策略对正常业务零影响。</li>
+    <li><span class="tag deviation">偏差</span><code>X-Level</code> 不暴露在 <code>/api/demo/masking/me</code> 响应中（<code>UserPrincipal#getLevel()</code> 带 <code>@JsonIgnore</code>），保持既有响应契约；如需回显需显式调整。</li>
+    <li><span class="tag deviation">偏差</span>文档中的「112 被过滤」演示使用分页接口，而该 SQL 的 <code>name</code> 条件当前被注释，因此演示的是等级过滤而非分类范围筛选，已在指南中注明。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>非法值返回 400</td><td>会改变既有接口的成功语义，且与"仅用于调试的模拟头"定位不符；fail-safe 更符合最小惊讶原则。</td></tr>
+    <tr><td>在 Controller / <code>@ControllerAdvice</code> 解析 <code>X-Level</code></td><td>数据权限是横切关注点，放在 MVC 层会漏掉非 Controller 入口，也无法与请求清理生命周期绑定。</td></tr>
+    <tr><td>把 <code>X-Level</code> 并入 <code>X-Permissions</code> 之类字符串</td><td>语义混杂、解析更复杂；独立 header 与 <code>level</code> 字段一一对应，便于调试与文档化。</td></tr>
+    <tr><td>不限制负数，直接作为阈值</td><td>负数会让 <code>level &lt;= -1</code> 过滤掉全部数据，容易被误用成"隐藏所有数据"；降级为未设置更安全。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>生产环境是否允许客户端直接传 <code>X-Level</code>：当前仅用于本地 mock，真实环境必须由认证流程从服务端会话/Token 推导，不能信任请求头。</li>
+    <li><span class="tag open">待确认</span>是否需要上限校验（例如 max=10）或白名单等级：现在任意非负整数都接受。</li>
+    <li><span class="tag open">已知局限</span>仅 <code>@Level</code> 查询生效；未标注的查询带 <code>X-Level</code> 也不会被过滤。</li>
+    <li><span class="tag open">已知局限</span>子查询穿透、UPDATE/DELETE 不覆盖，与阶段 1 记录一致。</li>
+</ul>
+
+<h2>五、验证</h2>
+<pre>mvn -pl spring compile                                          通过
+ProductServiceTest / ProductControllerTest / CategoryServiceTest / SubqueryQueryTest   14/14
+LevelConditionProviderTest                                      8/8
+LevelHeaderIntegrationTest                                      3/3（无头 / 合法 4 / 非法值）
+脱敏链路 7 个测试类                                              39/39
+合计                                                            64/64</pre>
+<hr>
+
+<h1>实现说明：8082 运行期 42104 诊断与 H2 内存库生命周期修复</h1>
+<p>现象：<code>GET /api/mp/categories/products/page?name=手机数码&amp;current=1&amp;size=20</code>（<code>X-Level: 3</code>）返回
+<code>SQL 执行错误 SELECT COUNT(*) AS total FROM mp_product p WHERE p.deleted = 0 AND p.level &lt;= 3 [42104-214]</code>。
+结论：<b>42104 = TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1</b>（"表不存在，且数据库为空"），不是列不存在（列不存在是 42122）；
+根因是内存库在连接池连接被全部关闭后销毁，而 <code>schema.sql</code> 只在启动时执行一次，之后的请求落到空库上。
+最小修复：给数据源 URL 增加 <code>DB_CLOSE_DELAY=-1</code>（仅一行配置，不改 schema、不改分页/别名逻辑）。</p>
+
+<h2>一、设计决策（Design Decisions）</h2>
+<table>
+    <tr><th>#</th><th>决策点</th><th>选择与理由</th></tr>
+    <tr><td>1</td><td>不改 <code>schema.sql</code></td><td><code>CREATE TABLE IF NOT EXISTS mp_product</code> 已<b>直接</b>包含 <code>level</code> 与 <code>category_id</code>，全文没有任何 <code>ALTER TABLE ADD COLUMN</code>，源文件与 <code>target/classes</code> 的 MD5 一致；因此"旧表缺列"不是本次现象的原因，无需改动。</td></tr>
+    <tr><td>2</td><td>不改分页 count SQL / 拦截器</td><td>报错语句的 <code>p.deleted</code> / <code>p.level</code> 别名与 <code>PaginationInnerInterceptor</code> 生成的 count 形态本身合法；42104 表示<b>整库无表</b>，与别名解析无关，所以不做任何 SQL 层改动。</td></tr>
+    <tr><td>3</td><td>改数据源 URL</td><td><code>jdbc:h2:mem:testdb</code> → <code>jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1</code>：把内存库的存活期绑定到 JVM，而不是"最后一个连接"，从机制上消除空库。</td></tr>
+    <tr><td>4</td><td>不恢复 <code>name</code> 过滤</td><td><code>CategoryMapper#selectProductsByCategoryNamePage</code> 中按分类名过滤的行仍保持注释状态（用户未批准），仅在本文件中记录现状。</td></tr>
+</table>
+
+<h2>二、偏差（Deviations）</h2>
+<ul>
+    <li><span class="tag deviation">偏差</span>问题落在配置层而非代码层，因此本轮只改一行配置，没有引入"启动后自检表结构"或"每次请求重建 schema"之类的新机制。</li>
+    <li><span class="tag deviation">偏差</span>保留 <code>spring.jpa.hibernate.ddl-auto=create-drop</code>（JPA 表仍随上下文关闭而删除），只修 H2 库级生命周期，避免扩大改动面。</li>
+</ul>
+
+<h2>三、权衡（Trade-offs）</h2>
+<table>
+    <tr><th>备选方案</th><th>弃用理由</th></tr>
+    <tr><td>只重启 8082，不改配置</td><td>重启能立刻恢复，但配置缺陷仍在：连接池连接被回收后库还会被销毁，数小时后再次 42104，属于可复现的定时炸弹。</td></tr>
+    <tr><td>每次请求前重建 schema 或开启 <code>spring.sql.init.mode=always</code></td><td>SQL 初始化只在启动阶段运行一次，请求期重建需要自定义逻辑，成本高且会与 seed 数据、事务边界纠缠。</td></tr>
+    <tr><td>改用文件库 <code>jdbc:h2:file:...</code></td><td>会改变演示定位（离线/免落盘）并引入数据残留与清理问题，超出本次最小修复范围。</td></tr>
+    <tr><td>给表加 <code>ALTER TABLE ADD COLUMN IF NOT EXISTS level</code></td><td>本就不缺列；且对"整库为空"无效，属于误诊式修改。</td></tr>
+</table>
+
+<h2>四、未决问题（Open Questions）</h2>
+<ul>
+    <li><span class="tag open">待确认</span>是否需要在启动时增加"关键表/列存在性"自检，把 42104 提前暴露为启动失败（当前是首次请求才暴露）。</li>
+    <li><span class="tag open">待确认</span><code>products/page</code> 的 <code>name</code> 过滤是否恢复：现状是分页查询忽略分类名条件，仅按 <code>deleted</code> 与等级过滤。</li>
+    <li><span class="tag open">运维</span>修改配置后必须<b>重启 JVM</b>（H2 内存库与 schema 只在新进程中重建）；仅热替换 class 不会让 URL 生效。</li>
+</ul>
+
+<h2>五、验证</h2>
+<pre>H2 2.1.214 错误码（javap -constants org.h2.api.ErrorCode）
+  42102 TABLE_OR_VIEW_NOT_FOUND_1
+  42104 TABLE_OR_VIEW_NOT_FOUND_DATABASE_EMPTY_1   ← 本次报错
+  42122 COLUMN_NOT_FOUND_1                          ← 不是本次报错
+
+H2 生命周期微实验（同一 jar，纯 JDBC）
+  jdbc:h2:mem:demo1                    关闭最后一个连接后重连 → 表不存在（false）
+  jdbc:h2:mem:demo2;DB_CLOSE_DELAY=-1   关闭最后一个连接后重连 → 表仍存在（true）
+
+schema.sql 与产物
+  md5(src)=md5(target/classes)=b6c20cc4...（一致）
+  mp_product 建表直接含 level / category_id；全文无 ALTER TABLE
+
+mvn -pl spring compile                                          通过
+ProductServiceTest 6 / ProductControllerTest 2 / CategoryServiceTest 4 / SubqueryQueryTest 2   14/14
+LevelConditionProviderTest                                      8/8
+LevelHeaderIntegrationTest                                      3/3
+回归合计                                                        25/25
+（仓库既有 16 例失败与本轮无关，未改动）</pre>
 </body>
 </html>

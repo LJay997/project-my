@@ -7,7 +7,7 @@ import com.alibaba.excel.annotation.write.style.HeadFontStyle;
 import com.alibaba.excel.annotation.write.style.HeadStyle;
 import com.alibaba.excel.enums.BooleanEnum;
 import com.alibaba.excel.enums.poi.FillPatternTypeEnum;
-import com.qq.ijay997.masking.PermissionCodes;
+import com.qq.ijay997.auth.PermissionCodes;
 import com.qq.ijay997.masking.Sensitive;
 import com.qq.ijay997.masking.SensitiveType;
 import lombok.AllArgsConstructor;

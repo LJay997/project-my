@@ -1,5 +1,7 @@
 package com.qq.ijay997.masking;
 
+import com.qq.ijay997.auth.UserContextHolder;
+
 /**
  * 敏感字段统一判定入口。
  * <p>

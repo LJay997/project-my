@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.qq.ijay997.masking.PermissionCodes;
+import com.qq.ijay997.auth.PermissionCodes;
 import com.qq.ijay997.masking.Sensitive;
 import com.qq.ijay997.masking.SensitiveType;
 import lombok.AllArgsConstructor;

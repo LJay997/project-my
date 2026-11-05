@@ -68,6 +68,13 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
         </dependency>
+
+        <!-- MyBatis-Plus：基于 MyBatis 的增强 ORM。3.5.x 对应 Spring Boot 2.x（非 Boot 3 的 boot3-starter） -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>3.5.7</version>
+        </dependency>
         
         <!-- H2 Database (内存数据库，用于演示) -->
         <dependency>

@@ -24,6 +24,24 @@ spring:
     port: 6379
     password:
     database: 0
+  # 同时使用 JPA（Hibernate DDL）与 schema.sql 时，把 SQL 初始化延后到 Hibernate DDL 之后，
+  # 避免 Hibernate create-drop 行为与 schema.sql 建表顺序冲突（MyBatis-Plus 演示表不受影响）。
+  jpa:
+    defer-datasource-initialization: true
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    banner: false
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
 # Caffeine 本地缓存配置（Spring Cache 抽象，底层使用 Caffeine）
 # spec 说明：maximumSize 最大条目数；expireAfterWrite 写入后过期；recordStats 开启统计
