@@ -83,4 +83,16 @@ public class ProductController {
                                    @RequestParam(required = false) BigDecimal maxPrice) {
         return productService.listByCondition(name, minPrice, maxPrice);
     }
+
+    /**
+     * UNION ALL 演示：已分类 + 未分类商品并集。
+     * <p>Mapper 方法带 {@code @Level("p")}，{@link com.qq.ijay997.mp.interceptor.LevelInterceptor}
+     * 会遍历 UNION 的两个分支，给<b>每个分支</b>各自追加 {@code p.level <= 阈值}。</p>
+     * <p>验证方式：携带请求头 {@code X-Level: 4}，返回结果里所有商品 {@code level} 均 &lt;= 4，
+     * 且未分类商品（种子数据 id=111，level=1）依然可见 —— 说明第二个分支也被正确改写。</p>
+     */
+    @GetMapping("/union")
+    public List<Product> union() {
+        return productService.listClassifiedAndUnclassified();
+    }
 }

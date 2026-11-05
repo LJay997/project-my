@@ -38,4 +38,9 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, Product> impl
                 .orderByAsc(Product::getId)
                 .list();
     }
+
+    @Override
+    public List<Product> listClassifiedAndUnclassified() {
+        return baseMapper.selectClassifiedAndUnclassified();
+    }
 }

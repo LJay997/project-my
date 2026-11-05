@@ -23,4 +23,11 @@ public interface ProductService extends IService<Product> {
      * 条件构造器示例：按名称模糊 + 价格区间查询。
      */
     List<Product> listByCondition(String name, BigDecimal minPrice, BigDecimal maxPrice);
+
+    /**
+     * UNION ALL 示例：已分类商品与未分类商品的并集。
+     * <p>Mapper 方法带 {@code @Level("p")}，{@code LevelInterceptor} 会给 UNION 的每个分支
+     * 各自追加 {@code p.level <= 阈值}，演示多分支 SQL 的权限改写。</p>
+     */
+    List<Product> listClassifiedAndUnclassified();
 }
