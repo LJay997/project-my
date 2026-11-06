@@ -1,14 +1,18 @@
 package com.qq.ijay997.masking;
 
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.Expiry;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 文件导出场景的敏感数据处理器。
@@ -24,6 +28,39 @@ import java.util.concurrent.ConcurrentMap;
 public class SensitiveDataMasker {
 
     private final ConcurrentMap<Class<?>, List<Field>> sensitiveFieldCache = new ConcurrentHashMap<>();
+
+    private static final LoadingCache<Class<?>, List<Field>> cache = Caffeine.newBuilder()
+            .maximumSize(100)
+            // expireAfter 的 currentTime 是 System.nanoTime() 是系统启动以来的纳秒数，不是当前时间的毫秒数; 需要转换
+            .expireAfter(new Expiry<Class<?>, List<Field>>() {
+                @Override
+                public long expireAfterCreate(Class<?> key, List<Field> value, long currentTime) {
+                    long nowMillis = System.currentTimeMillis();
+                    LocalDate today = Instant.ofEpochMilli(nowMillis)
+                            .atZone(ZoneId.of("Asia/Shanghai"))
+                            .toLocalDate();
+                    long midnightMillis = today.plusDays(1)
+                            .atStartOfDay(ZoneId.of("Asia/Shanghai"))
+                            .toInstant()
+                            .toEpochMilli();
+                    long duration = midnightMillis - nowMillis;
+                    return Math.max(0, TimeUnit.MILLISECONDS.toNanos(duration));
+                }
+
+                @Override
+                public long expireAfterUpdate(Class<?> key, List<Field> value, long currentTime, long currentDuration) {
+                    return currentDuration;
+                }
+
+                @Override
+                public long expireAfterRead(Class<?> key, List<Field> value, long currentTime, long currentDuration) {
+                    return currentDuration;
+                }
+            })
+            //            .ticker(() -> TimeUnit.MILLISECONDS.toNanos(System.currentTimeMillis()))  // ← 加这一行
+            .weakKeys()
+            // 在数据不变化的情况下不建议返回 null
+            .build(SensitiveDataMasker::resolveSensitiveFields);
 
     /**
      * 批量处理。
@@ -50,8 +87,9 @@ public class SensitiveDataMasker {
         }
         Class<?> clazz = bean.getClass();
 
+        List<Field> fields = cache.get(clazz);
         // ConcurrentMap 为线程安全型，无需同步块
-        List<Field> fields = sensitiveFieldCache.computeIfAbsent(clazz, SensitiveDataMasker::resolveSensitiveFields);
+//        List<Field> fields = sensitiveFieldCache.computeIfAbsent(clazz, SensitiveDataMasker::resolveSensitiveFields);
         for (Field field : fields) {
             try {
                 String original = (String) field.get(bean);
@@ -67,6 +105,7 @@ public class SensitiveDataMasker {
     }
 
     private static List<Field> resolveSensitiveFields(Class<?> clazz) {
+        // 不建议缓存 null 值, null 下次相同的 key 还会执行该方法
         List<Field> result = new ArrayList<>();
         for (Field field : clazz.getDeclaredFields()) {
             if (field.getType() != String.class) {
@@ -77,7 +116,8 @@ public class SensitiveDataMasker {
                 result.add(field);
             }
         }
-        return result;
+        return result.isEmpty() ?
+                Collections.emptyList() : result;
     }
 
 }
