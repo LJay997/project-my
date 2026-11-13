@@ -1,0 +1,116 @@
+"JVMCI-native CompilerThread0@725" daemon prio=9 tid=0xe nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	at sun.nio.fs.UnixNativeDispatcher.init(UnixNativeDispatcher.java:-1)
+	at sun.nio.fs.UnixNativeDispatcher.<clinit>(UnixNativeDispatcher.java:817)
+	at sun.nio.fs.UnixFileSystem.<init>(UnixFileSystem.java:96)
+	at sun.nio.fs.BsdFileSystem.<init>(BsdFileSystem.java:50)
+	at sun.nio.fs.MacOSXFileSystem.<init>(MacOSXFileSystem.java:52)
+	at sun.nio.fs.MacOSXFileSystemProvider.newFileSystem(MacOSXFileSystemProvider.java:44)
+	at sun.nio.fs.MacOSXFileSystemProvider.newFileSystem(MacOSXFileSystemProvider.java:37)
+	at sun.nio.fs.UnixFileSystemProvider.<init>(UnixFileSystemProvider.java:78)
+	at sun.nio.fs.BsdFileSystemProvider.<init>(BsdFileSystemProvider.java:38)
+	at sun.nio.fs.MacOSXFileSystemProvider.<init>(MacOSXFileSystemProvider.java:39)
+	at sun.nio.fs.DefaultFileSystemProvider.<clinit>(DefaultFileSystemProvider.java:35)
+	at java.nio.file.FileSystems$DefaultFileSystemHolder.getDefaultProvider(FileSystems.java:114)
+	at java.nio.file.FileSystems$DefaultFileSystemHolder$1.run(FileSystems.java:103)
+	at java.nio.file.FileSystems$DefaultFileSystemHolder$1.run(FileSystems.java:101)
+	at java.security.AccessController.executePrivileged(AccessController.java:778)
+	at java.security.AccessController.doPrivileged(AccessController.java:319)
+	at java.nio.file.FileSystems$DefaultFileSystemHolder.defaultFileSystem(FileSystems.java:101)
+	at java.nio.file.FileSystems$DefaultFileSystemHolder.<clinit>(FileSystems.java:94)
+	at java.nio.file.FileSystems.getDefault(FileSystems.java:183)
+	at java.nio.file.Path.of(Path.java:148)
+	at java.nio.file.Paths.get(Paths.java:69)
+	at jdk.internal.jimage.ImageReaderFactory.<clinit>(ImageReaderFactory.java:51)
+	at jdk.internal.module.SystemModuleFinders$SystemImage.<clinit>(SystemModuleFinders.java:385)
+	at jdk.internal.module.SystemModuleFinders$SystemModuleReader.findImageLocation(SystemModuleFinders.java:429)
+	at jdk.internal.module.SystemModuleFinders$SystemModuleReader.read(SystemModuleFinders.java:483)
+	at jdk.internal.loader.BuiltinClassLoader.defineClass(BuiltinClassLoader.java:809)
+	at jdk.internal.loader.BuiltinClassLoader.findClassInModuleOrNull(BuiltinClassLoader.java:741)
+	at jdk.internal.loader.BuiltinClassLoader.findClass(BuiltinClassLoader.java:621)
+	at java.lang.ClassLoader.loadClass(ClassLoader.java:638)
+	  - locked <0x3c9> (a java.lang.Object)
+	at java.lang.Class.forName(Class.java:625)
+	at java.lang.Class.forName(Class.java:600)
+	at java.util.ServiceLoader.loadProvider(ServiceLoader.java:859)
+	at java.util.ServiceLoader$ModuleServicesLookupIterator.hasNext(ServiceLoader.java:1084)
+	at java.util.ServiceLoader$2.hasNext(ServiceLoader.java:1309)
+	at java.util.ServiceLoader$3.hasNext(ServiceLoader.java:1393)
+	at sun.util.cldr.CLDRLocaleProviderAdapter.lambda$new$0(CLDRLocaleProviderAdapter.java:84)
+	at sun.util.cldr.CLDRLocaleProviderAdapter$$Lambda/0x00000070010611d8.run(Unknown Source:-1)
+	at java.security.AccessController.executePrivileged(AccessController.java:809)
+	at java.security.AccessController.doPrivileged(AccessController.java:571)
+	at sun.util.cldr.CLDRLocaleProviderAdapter.<init>(CLDRLocaleProviderAdapter.java:83)
+	at java.lang.invoke.DirectMethodHandle$Holder.newInvokeSpecial(DirectMethodHandle$Holder:-1)
+	at java.lang.invoke.Invokers$Holder.invokeExact_MT(Invokers$Holder:-1)
+	at jdk.internal.reflect.DirectConstructorHandleAccessor.invokeImpl(DirectConstructorHandleAccessor.java:86)
+	at jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62)
+	at java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502)
+	at java.lang.reflect.Constructor.newInstance(Constructor.java:486)
+	at sun.util.locale.provider.LocaleProviderAdapter.forType(LocaleProviderAdapter.java:194)
+	at sun.util.locale.provider.LocaleServiceProviderPool.findProviders(LocaleServiceProviderPool.java:311)
+	at sun.util.locale.provider.LocaleServiceProviderPool.getLocalizedObjectImpl(LocaleServiceProviderPool.java:283)
+	at sun.util.locale.provider.LocaleServiceProviderPool.getLocalizedObject(LocaleServiceProviderPool.java:245)
+	at sun.util.locale.provider.TimeZoneNameUtility.retrieveDisplayNamesImpl(TimeZoneNameUtility.java:197)
+	at sun.util.locale.provider.TimeZoneNameUtility.retrieveDisplayName(TimeZoneNameUtility.java:150)
+	at java.util.TimeZone.getDisplayName(TimeZone.java:430)
+	at java.util.Date.toString(Date.java:1045)
+	at java.lang.String.valueOf(String.java:4465)
+	at java.lang.StringBuilder.append(StringBuilder.java:173)
+	at java.util.Properties.writeDateComment(Properties.java:958)
+	at java.util.Properties.store0(Properties.java:919)
+	at java.util.Properties.store(Properties.java:908)
+	at jdk.internal.vm.VMSupport.serializePropertiesToByteArray(VMSupport.java:77)
+	at jdk.internal.vm.VMSupport.serializeSavedPropertiesToByteArray(VMSupport.java:115)
+
+"IntelliJ Suspend Helper@833" daemon prio=5 tid=0x16 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	at java.lang.Thread.sleep0(Thread.java:-1)
+	at java.lang.Thread.sleep(Thread.java:509)
+	at com.intellij.rt.debugger.agent.SuspendHelper.suspendHelperLoopBody(SuspendHelper.java:29)
+	at com.intellij.rt.debugger.agent.SuspendHelper.access$000(SuspendHelper.java:5)
+	at com.intellij.rt.debugger.agent.SuspendHelper$1.run(SuspendHelper.java:15)
+	at java.lang.Thread.runWith(Thread.java:1596)
+	at java.lang.Thread.run(Thread.java:1583)
+
+"main@1" prio=5 tid=0x1 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	at com.qq.ijay997.jvm.ThreadStateVisualVMDemo.main(ThreadStateVisualVMDemo.java:86)
+
+"Reference Handler@959" daemon prio=10 tid=0x9 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+	at java.lang.ref.Reference.waitForReferencePendingList(Reference.java:-1)
+	at java.lang.ref.Reference.processPendingReferences(Reference.java:246)
+	at java.lang.ref.Reference$ReferenceHandler.run(Reference.java:208)
+
+"Finalizer@960" daemon prio=8 tid=0xa nid=NA waiting
+  java.lang.Thread.State: WAITING
+	at java.lang.Object.wait0(Object.java:-1)
+	at java.lang.Object.wait(Object.java:366)
+	at java.lang.Object.wait(Object.java:339)
+	at java.lang.ref.NativeReferenceQueue.await(NativeReferenceQueue.java:48)
+	at java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:158)
+	at java.lang.ref.NativeReferenceQueue.remove(NativeReferenceQueue.java:89)
+	at java.lang.ref.Finalizer$FinalizerThread.run(Finalizer.java:173)
+
+"Common-Cleaner@962" daemon prio=8 tid=0x12 nid=NA waiting
+  java.lang.Thread.State: WAITING
+	at jdk.internal.misc.Unsafe.park(Unsafe.java:-1)
+	at java.util.concurrent.locks.LockSupport.parkNanos(LockSupport.java:269)
+	at java.util.concurrent.locks.AbstractQueuedSynchronizer$ConditionObject.await(AbstractQueuedSynchronizer.java:1852)
+	at java.lang.ref.ReferenceQueue.await(ReferenceQueue.java:71)
+	at java.lang.ref.ReferenceQueue.remove0(ReferenceQueue.java:143)
+	at java.lang.ref.ReferenceQueue.remove(ReferenceQueue.java:218)
+	at jdk.internal.ref.CleanerImpl.run(CleanerImpl.java:140)
+	at java.lang.Thread.runWith(Thread.java:1596)
+	at java.lang.Thread.run(Thread.java:1583)
+	at jdk.internal.misc.InnocuousThread.run(InnocuousThread.java:186)
+
+"Signal Dispatcher@961" daemon prio=9 tid=0xb nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+
+
+"Notification Thread@854" daemon prio=9 tid=0x17 nid=NA runnable
+  java.lang.Thread.State: RUNNABLE
+
+

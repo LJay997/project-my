@@ -8,6 +8,9 @@ import com.qq.ijay997.mp.interceptor.LevelInterceptor;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
+
+import java.util.Optional;
 
 /**
  * MyBatis-Plus 配置：
@@ -22,10 +25,16 @@ import org.springframework.context.annotation.Configuration;
 public class MybatisPlusConfig {
 
     @Bean
-    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+    // @Profile("dev")
+    public LevelInterceptor levelInterceptor() {
+        return new LevelInterceptor();
+    }
+
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor(Optional<LevelInterceptor> levelInterceptor) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
 
-        interceptor.addInnerInterceptor(new LevelInterceptor());
+        levelInterceptor.ifPresent(interceptor::addInnerInterceptor);
         // 乐观锁拦截器需在分页之前注册
         interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
 

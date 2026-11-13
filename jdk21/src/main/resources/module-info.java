@@ -22,4 +22,5 @@ module jdk21demos {
     exports com.qq.ijay997.jdk1415;
     exports com.qq.ijay997.jdk1617;
     exports com.qq.ijay997.jdk21;
+    exports com.qq.ijay997.jvm;
 }
